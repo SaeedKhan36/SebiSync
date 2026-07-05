@@ -4,3 +4,11 @@ node_modules
 dist
 .output
 *.log
+
+# Python (services/docling-sidecar)
+.venv
+venv
+__pycache__
+*.pyc
+.pytest_cache
+.mypy_cache

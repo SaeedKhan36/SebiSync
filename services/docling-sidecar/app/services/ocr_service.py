@@ -7,6 +7,7 @@ a native text PDF.
 """
 
 import io
+from typing import Optional
 
 import fitz  # PyMuPDF
 import numpy as np
@@ -15,7 +16,7 @@ from PIL import Image
 
 from app.utils.logging_config import logger
 
-_ocr_engine: PaddleOCR | None = None
+_ocr_engine: Optional[PaddleOCR] = None
 
 
 def _get_ocr_engine() -> PaddleOCR:
