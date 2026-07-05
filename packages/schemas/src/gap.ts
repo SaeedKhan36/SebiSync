@@ -17,9 +17,10 @@ export const gapDtoSchema = z.object({
 });
 export type GapDto = z.infer<typeof gapDtoSchema>;
 
+// resolvedByUserId is intentionally not part of this input — it's resolved
+// server-side from the authenticated Clerk session.
 export const resolveGapSchema = z.object({
   gapId: z.string(),
   resolutionNote: z.string(),
-  resolvedByUserId: z.string(),
 });
 export type ResolveGap = z.infer<typeof resolveGapSchema>;
