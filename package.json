@@ -1,0 +1,19 @@
+{
+  "name": "sebi-agentic-compliance",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "lint": "turbo run lint",
+    "db:migrate": "pnpm --filter @sebi/db exec prisma migrate dev",
+    "db:seed": "pnpm --filter @sebi/db exec tsx prisma/seed.ts",
+    "db:generate": "pnpm --filter @sebi/db exec prisma generate"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.0",
+    "typescript": "^5.7.0"
+  },
+  "packageManager": "pnpm@10.30.0"
+}

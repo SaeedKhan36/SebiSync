@@ -1,0 +1,262 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+// -------------------- Tenancy / intermediaries --------------------
+
+model IntermediaryCategory {
+  id        String   @id @default(cuid())
+  code      String   @unique // "IA", "STOCKBROKER", "DEPOSITORY", "AMC", "RTA", "MII"
+  name      String
+  createdAt DateTime @default(now())
+
+  intermediaries Intermediary[]
+  obligations    Obligation[]
+}
+
+model Intermediary {
+  id         String   @id @default(cuid())
+  name       String
+  categoryId String
+  category   IntermediaryCategory @relation(fields: [categoryId], references: [id])
+  sebiRegNo  String?
+  clerkOrgId String?  @unique
+  createdAt  DateTime @default(now())
+
+  clients        Client[]
+  checklistItems ComplianceChecklistItem[]
+  auditLogs      AuditLogEntry[]
+}
+
+model Client {
+  id             String   @id @default(cuid())
+  intermediaryId String
+  intermediary   Intermediary @relation(fields: [intermediaryId], references: [id])
+  name           String
+  onboardedAt    DateTime?
+  createdAt      DateTime @default(now())
+
+  checklistItems  ComplianceChecklistItem[]
+  evidenceRecords EvidenceRecord[]
+}
+
+// -------------------- Regulatory documents --------------------
+
+enum DocStatus {
+  UPLOADED
+  PARSING
+  PARSED
+  EXTRACTING
+  EXTRACTED
+  FAILED
+}
+
+model RegulatoryDocument {
+  id             String    @id @default(cuid())
+  title          String
+  circularNumber String
+  issuedDate     DateTime
+  sourceUrl      String
+  r2ObjectKey    String
+  status         DocStatus @default(UPLOADED)
+
+  supersedesId String?             @unique
+  supersedes   RegulatoryDocument? @relation("Supersession", fields: [supersedesId], references: [id])
+  supersededBy RegulatoryDocument? @relation("Supersession")
+
+  createdAt DateTime @default(now())
+
+  chunks      DocumentChunk[]
+  obligations Obligation[]
+}
+
+model DocumentChunk {
+  id          String             @id @default(cuid())
+  documentId  String
+  document    RegulatoryDocument @relation(fields: [documentId], references: [id])
+  chunkIndex  Int
+  pageNumber  Int?
+  sectionPath String?
+  text        String
+  // pgvector column, dims match the embedding model in use (Gemini Embedding 001 = 768)
+  embedding   Unsupported("vector(768)")?
+  createdAt   DateTime           @default(now())
+
+  obligationLinks ObligationSourceChunk[]
+
+  @@index([documentId, chunkIndex])
+}
+
+// -------------------- Obligations (structured, machine-actionable) --------------------
+
+enum ObligationStatus {
+  DRAFT
+  REVIEWED
+  PUBLISHED
+  SUPERSEDED
+}
+
+model Obligation {
+  id         String             @id @default(cuid())
+  documentId String
+  document   RegulatoryDocument @relation(fields: [documentId], references: [id])
+
+  code            String  @unique // e.g. "IA-RISK-PROFILING-01"
+  title           String
+  description     String
+  obligatedAction String
+  triggerEvent    String?
+  frequency       String? // "PER_CLIENT" | "PER_COMPLAINT" | "ANNUAL" | "ONE_TIME"
+  deadlineDays    Int?
+  deadlineBasis   String?
+  penaltyOrRisk   String?
+
+  // Auditability: verbatim source clause
+  citationText    String
+  citationPage    Int?
+  citationSection String?
+
+  extractionConfidence Float?
+  status               ObligationStatus @default(DRAFT)
+  reviewedByUserId     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  applicableCategories IntermediaryCategory[]
+  sourceChunks         ObligationSourceChunk[]
+  checklistItems       ComplianceChecklistItem[]
+  auditLogs            AuditLogEntry[]
+}
+
+model ObligationSourceChunk {
+  id             String        @id @default(cuid())
+  obligationId   String
+  obligation     Obligation    @relation(fields: [obligationId], references: [id])
+  chunkId        String
+  chunk          DocumentChunk @relation(fields: [chunkId], references: [id])
+  relevanceScore Float?
+
+  @@unique([obligationId, chunkId])
+}
+
+// -------------------- Per-tenant compliance tracking --------------------
+
+enum ChecklistStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLIANT
+  GAP
+  NOT_APPLICABLE
+}
+
+model ComplianceChecklistItem {
+  id             String       @id @default(cuid())
+  intermediaryId String
+  intermediary   Intermediary @relation(fields: [intermediaryId], references: [id])
+  obligationId   String
+  obligation     Obligation   @relation(fields: [obligationId], references: [id])
+
+  status           ChecklistStatus @default(PENDING)
+  dueDate          DateTime?
+  clientId         String?
+  client           Client?         @relation(fields: [clientId], references: [id])
+  assignedToUserId String?
+  lastEvidenceAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  evidenceRecords EvidenceRecord[]
+  gaps            ComplianceGap[]
+  auditLogs       AuditLogEntry[]
+
+  @@index([intermediaryId, status])
+}
+
+model EvidenceRecord {
+  id              String                  @id @default(cuid())
+  checklistItemId String
+  checklistItem   ComplianceChecklistItem @relation(fields: [checklistItemId], references: [id])
+  clientId        String?
+  client          Client?                 @relation(fields: [clientId], references: [id])
+
+  evidenceType      String // "DOCUMENT" | "FORM_SUBMISSION" | "LOG_ENTRY" | "ATTESTATION"
+  r2ObjectKey       String?
+  description       String?
+  submittedByUserId String
+  submittedAt       DateTime @default(now())
+  validUntil        DateTime?
+
+  auditLogs AuditLogEntry[]
+}
+
+enum GapType {
+  MISSING_EVIDENCE
+  PAST_DEADLINE
+  STALE_EVIDENCE
+  INCOMPLETE
+}
+
+enum GapSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model ComplianceGap {
+  id              String                  @id @default(cuid())
+  checklistItemId String
+  checklistItem   ComplianceChecklistItem @relation(fields: [checklistItemId], references: [id])
+
+  gapType        GapType
+  detectedAt     DateTime    @default(now())
+  severity       GapSeverity @default(MEDIUM)
+  resolvedAt     DateTime?
+  resolutionNote String?
+  notifiedAt     DateTime?
+
+  auditLogs AuditLogEntry[]
+}
+
+// -------------------- Audit trail --------------------
+
+model AuditLogEntry {
+  id             String       @id @default(cuid())
+  intermediaryId String
+  intermediary   Intermediary @relation(fields: [intermediaryId], references: [id])
+
+  entityType String // "Obligation" | "ChecklistItem" | "EvidenceRecord" | "ComplianceGap"
+  entityId   String
+  action     String // "CREATED" | "STATUS_CHANGED" | "EVIDENCE_UPLOADED" | "GAP_DETECTED" | "GAP_RESOLVED" | "NOTIFIED"
+  actorType  String // "SYSTEM_AGENT" | "USER" | "SCHEDULED_JOB"
+  actorUserId String?
+  beforeState Json?
+  afterState  Json?
+  metadata    Json?
+
+  createdAt DateTime @default(now())
+
+  obligationId String?
+  obligation   Obligation? @relation(fields: [obligationId], references: [id])
+
+  checklistItemId String?
+  checklistItem   ComplianceChecklistItem? @relation(fields: [checklistItemId], references: [id])
+
+  evidenceRecordId String?
+  evidenceRecord   EvidenceRecord? @relation(fields: [evidenceRecordId], references: [id])
+
+  gapId String?
+  gap   ComplianceGap? @relation(fields: [gapId], references: [id])
+
+  @@index([intermediaryId, createdAt])
+  @@index([entityType, entityId])
+}
