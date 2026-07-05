@@ -1,6 +1,19 @@
-import { createClerkClient } from "@clerk/backend";
+import { createClerkClient, type ClerkClient } from "@clerk/backend";
 
-const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY ?? "" });
+// Lazily constructed — this module is statically reachable from server.ts
+// (server -> trpc/router -> trpc/context -> lib/auth), which ESM executes
+// before server.ts's own dotenv.config() calls run. Reading process.env at
+// call time (not module load time) avoids capturing empty keys.
+let clerkClient: ClerkClient | undefined;
+function getClerkClient(): ClerkClient {
+  if (!clerkClient) {
+    clerkClient = createClerkClient({
+      secretKey: process.env.CLERK_SECRET_KEY ?? "",
+      publishableKey: process.env.CLERK_PUBLISHABLE_KEY ?? "",
+    });
+  }
+  return clerkClient;
+}
 
 export interface AuthResult {
   userId: string;
@@ -11,7 +24,7 @@ export interface AuthResult {
 // Bearer <token> for API clients, or the __session cookie for browser
 // requests) and returns the authenticated user/org, or null if not signed in.
 export async function authenticateRequest(request: Request): Promise<AuthResult | null> {
-  const requestState = await clerkClient.authenticateRequest(request);
+  const requestState = await getClerkClient().authenticateRequest(request);
   if (!requestState.isSignedIn) {
     return null;
   }

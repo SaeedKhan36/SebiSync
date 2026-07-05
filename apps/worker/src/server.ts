@@ -8,12 +8,24 @@ dotenv.config(); // apps/worker/.env for worker-specific vars, if present
 
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
+import { cors } from "hono/cors";
 import { trpcServer } from "@hono/trpc-server";
 import { appRouter } from "./trpc/router";
 import { createContext } from "./trpc/context";
 import { detectGaps } from "./services/detectGaps";
 
 const app = new Hono();
+
+// The frontend (apps/web) runs on a different origin/port, so requests need
+// CORS + credentials to carry the Clerk session/auth header cross-origin.
+app.use(
+  "*",
+  cors({
+    origin: process.env.WEB_ORIGIN ?? "http://localhost:3000",
+    credentials: true,
+    allowHeaders: ["Content-Type", "Authorization"],
+  }),
+);
 
 app.get("/health", (c) => c.json({ status: "ok" }));
 
