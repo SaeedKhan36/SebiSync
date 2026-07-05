@@ -1,11 +1,11 @@
 import { z } from "zod";
 import { obligationStatusSchema } from "@sebi/schemas";
-import { router, publicProcedure } from "../trpc";
+import { router, protectedProcedure } from "../trpc";
 import { writeAuditLog } from "../../lib/audit";
 import { propagateObligation } from "../../services/propagateObligation";
 
 export const obligationRouter = router({
-  list: publicProcedure
+  list: protectedProcedure
     .input(
       z.object({
         documentId: z.string().optional(),
@@ -27,7 +27,7 @@ export const obligationRouter = router({
       }),
     ),
 
-  get: publicProcedure
+  get: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(({ ctx, input }) =>
       ctx.prisma.obligation.findUniqueOrThrow({
@@ -41,8 +41,10 @@ export const obligationRouter = router({
     ),
 
   // DRAFT -> PUBLISHED directly. No intermediate REVIEWED state for hackathon scope.
-  publish: publicProcedure
-    .input(z.object({ id: z.string(), reviewedByUserId: z.string() }))
+  // reviewedByUserId comes from the authenticated Clerk session, not client input,
+  // so a caller can't attribute a publish action to an arbitrary user.
+  publish: protectedProcedure
+    .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const existing = await ctx.prisma.obligation.findUniqueOrThrow({ where: { id: input.id } });
       if (existing.status !== "DRAFT") {
@@ -50,14 +52,14 @@ export const obligationRouter = router({
       }
       const updated = await ctx.prisma.obligation.update({
         where: { id: input.id },
-        data: { status: "PUBLISHED", reviewedByUserId: input.reviewedByUserId },
+        data: { status: "PUBLISHED", reviewedByUserId: ctx.userId },
       });
       await writeAuditLog({
         entityType: "Obligation",
         entityId: updated.id,
         action: "STATUS_CHANGED",
         actorType: "USER",
-        actorUserId: input.reviewedByUserId,
+        actorUserId: ctx.userId,
         beforeState: { status: existing.status },
         afterState: { status: updated.status },
         obligationId: updated.id,

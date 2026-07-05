@@ -9,12 +9,14 @@ export const evidenceUploadRequestSchema = z.object({
 });
 export type EvidenceUploadRequest = z.infer<typeof evidenceUploadRequestSchema>;
 
+// submittedByUserId is intentionally not part of this input — it's resolved
+// server-side from the authenticated Clerk session, never trusted from the
+// client, so a caller can't attribute an upload to an arbitrary user.
 export const evidenceConfirmSchema = z.object({
   checklistItemId: z.string(),
   r2ObjectKey: z.string(),
   evidenceType: evidenceTypeSchema,
   description: z.string().optional(),
-  submittedByUserId: z.string(),
   validUntil: z.coerce.date().optional(),
 });
 export type EvidenceConfirm = z.infer<typeof evidenceConfirmSchema>;

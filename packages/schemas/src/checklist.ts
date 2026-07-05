@@ -25,9 +25,11 @@ export type ChecklistItemDto = z.infer<typeof checklistItemDtoSchema>;
 
 // Creates a TriggerEvent + its ComplianceChecklistItem together for a PER_EVENT
 // obligation (e.g. a SCORES complaint starting the 21-day clock).
+// intermediaryId is intentionally not part of this input — it's resolved
+// server-side from the authenticated Clerk organization, never trusted from
+// the client, so a caller can't create events under another org.
 export const createTriggerEventSchema = z.object({
   obligationId: z.string(),
-  intermediaryId: z.string(),
   clientId: z.string().optional(),
   eventType: z.string(),
   eventDate: z.coerce.date(),

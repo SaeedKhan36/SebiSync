@@ -1,11 +1,11 @@
 import { z } from "zod";
 import { createDocumentSchema, docStatusSchema } from "@sebi/schemas";
-import { router, publicProcedure } from "../trpc";
+import { router, protectedProcedure } from "../trpc";
 import { writeAuditLog } from "../../lib/audit";
 import { runIngestionWorkflow } from "../../ingestion/workflow";
 
 export const documentRouter = router({
-  create: publicProcedure.input(createDocumentSchema).mutation(async ({ ctx, input }) => {
+  create: protectedProcedure.input(createDocumentSchema).mutation(async ({ ctx, input }) => {
     const document = await ctx.prisma.regulatoryDocument.create({
       data: {
         title: input.title,
@@ -27,7 +27,7 @@ export const documentRouter = router({
     return document;
   }),
 
-  getUploadUrl: publicProcedure
+  getUploadUrl: protectedProcedure
     .input(z.object({ documentId: z.string(), fileName: z.string(), contentType: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const { getPresignedUploadUrl } = await import("../../storage/r2");
@@ -40,7 +40,7 @@ export const documentRouter = router({
       return { uploadUrl, r2ObjectKey };
     }),
 
-  triggerExtraction: publicProcedure
+  triggerExtraction: protectedProcedure
     .input(z.object({ documentId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       await ctx.prisma.regulatoryDocument.update({
@@ -52,7 +52,7 @@ export const documentRouter = router({
       return { status: "PARSING" as const };
     }),
 
-  list: publicProcedure
+  list: protectedProcedure
     .input(
       z.object({
         status: docStatusSchema.optional(),
@@ -69,7 +69,7 @@ export const documentRouter = router({
       }),
     ),
 
-  get: publicProcedure
+  get: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(({ ctx, input }) =>
       ctx.prisma.regulatoryDocument.findUniqueOrThrow({
