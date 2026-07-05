@@ -2,7 +2,7 @@ import { z } from "zod";
 import { obligationStatusSchema } from "@sebi/schemas";
 import { router, publicProcedure } from "../trpc";
 import { writeAuditLog } from "../../lib/audit";
-import { propagateObligation } from "../../jobs/propagateObligation";
+import { propagateObligation } from "../../services/propagateObligation";
 
 export const obligationRouter = router({
   list: publicProcedure

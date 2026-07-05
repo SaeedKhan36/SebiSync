@@ -3,9 +3,11 @@ import { writeAuditLog } from "../lib/audit";
 
 const GRACE_PERIOD_DAYS = 30;
 
-// Manually triggered (curl / dashboard button) or via a QStash schedule
-// hitting POST /internal/detect-gaps. No locking — overlapping runs are
-// idempotent because of the duplicate-gap check below.
+// Pure service function: no knowledge of HTTP, schedulers, or triggers.
+// Callable from the manual POST /internal/detect-gaps route today, from a UI
+// button, or from a future cron/scheduler trigger — all without changing this
+// function. No locking needed — overlapping calls are idempotent because of
+// the duplicate-gap check below.
 export async function detectGaps(): Promise<{ created: number }> {
   const now = new Date();
   const items = await prisma.complianceChecklistItem.findMany({

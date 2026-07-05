@@ -31,7 +31,7 @@ export const evidenceRouter = router({
         },
       });
       // Simple rule: any non-expired evidence marks the item COMPLIANT.
-      // Refined gap-aware logic lives in jobs/detectGaps.ts.
+      // Refined gap-aware logic lives in services/detectGaps.ts.
       await ctx.prisma.complianceChecklistItem.update({
         where: { id: input.checklistItemId },
         data: { lastEvidenceAt: evidence.submittedAt, status: "COMPLIANT" },

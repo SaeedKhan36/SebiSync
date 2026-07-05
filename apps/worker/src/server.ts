@@ -11,7 +11,7 @@ import { Hono } from "hono";
 import { trpcServer } from "@hono/trpc-server";
 import { appRouter } from "./trpc/router";
 import { createContext } from "./trpc/context";
-import { detectGaps } from "./jobs/detectGaps";
+import { detectGaps } from "./services/detectGaps";
 
 const app = new Hono();
 
@@ -25,7 +25,10 @@ app.use(
   }),
 );
 
-// Manually triggered or hit by a QStash scheduled call.
+// Trigger layer only: this route's one job is to call the detectGaps()
+// service function and return its result. No scheduler dependency by design —
+// a future cron/QStash/Vercel Cron trigger would call detectGaps() the same
+// way, without touching the business logic in services/detectGaps.ts.
 app.post("/internal/detect-gaps", async (c) => {
   const result = await detectGaps();
   return c.json(result);
