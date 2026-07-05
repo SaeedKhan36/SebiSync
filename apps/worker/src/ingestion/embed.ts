@@ -6,7 +6,16 @@ import type { ChunkInput } from "./chunker";
 const EMBEDDING_DIMENSIONS = 768;
 const BATCH_SIZE = 100;
 
-const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY ?? "" });
+// Lazily constructed: this module is statically reachable from server.ts,
+// which executes before server.ts's own dotenv.config() calls run (ESM
+// hoisting). Reading process.env at call time avoids capturing an empty key.
+let genAI: GoogleGenAI | undefined;
+function getGenAI(): GoogleGenAI {
+  if (!genAI) {
+    genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY ?? "" });
+  }
+  return genAI;
+}
 
 export interface EmbeddedChunk extends ChunkInput {
   embedding: number[];
@@ -19,7 +28,7 @@ export async function embedChunks(chunks: ChunkInput[]): Promise<EmbeddedChunk[]
   const results: EmbeddedChunk[] = [];
   for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
     const batch = chunks.slice(i, i + BATCH_SIZE);
-    const response = await genAI.models.embedContent({
+    const response = await getGenAI().models.embedContent({
       model: "gemini-embedding-001",
       contents: batch.map((c) => c.text),
       config: { outputDimensionality: EMBEDDING_DIMENSIONS },
@@ -35,7 +44,7 @@ export async function embedChunks(chunks: ChunkInput[]): Promise<EmbeddedChunk[]
 }
 
 export async function embedText(text: string): Promise<number[]> {
-  const response = await genAI.models.embedContent({
+  const response = await getGenAI().models.embedContent({
     model: "gemini-embedding-001",
     contents: [text],
     config: { outputDimensionality: EMBEDDING_DIMENSIONS },

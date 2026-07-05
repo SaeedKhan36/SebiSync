@@ -6,7 +6,15 @@ import type { ExtractionStateType } from "../state";
 
 const CHUNK_BATCH_SIZE = 4;
 
-const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY ?? "" });
+// Lazily constructed — see storage/r2.ts for why (ESM static-import hoisting
+// runs this module's top-level code before server.ts's dotenv.config() calls).
+let genAI: GoogleGenAI | undefined;
+function getGenAI(): GoogleGenAI {
+  if (!genAI) {
+    genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY ?? "" });
+  }
+  return genAI;
+}
 
 export async function extractObligations(
   state: ExtractionStateType,
@@ -27,7 +35,7 @@ export async function extractObligations(
     const batch = state.chunks.slice(i, i + CHUNK_BATCH_SIZE);
     const prompt = buildExtractionPrompt(batch, corpusContext);
 
-    const response = await genAI.models.generateContent({
+    const response = await getGenAI().models.generateContent({
       model: "gemini-2.5-flash",
       contents: prompt,
       config: { responseMimeType: "application/json" },
