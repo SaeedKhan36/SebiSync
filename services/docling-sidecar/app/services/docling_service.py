@@ -7,6 +7,7 @@ document level. Page numbers and section hierarchy are preserved throughout
 since they're later used for citation generation and obligation extraction.
 """
 
+import re
 import tempfile
 from pathlib import Path
 from typing import Optional
@@ -17,6 +18,7 @@ from docling_core.types.doc import DocItemLabel
 from app.models.schemas import DocumentMetadata, Heading, ListData, Page, ParseResponse, Section, TableData
 from app.utils.logging_config import logger
 
+_OCR_PAGE_HEADING_RE = re.compile(r"^Page (\d+)$")
 _converter: Optional[DocumentConverter] = None
 
 
@@ -70,9 +72,16 @@ def _parse_with_docling(source, ocr_used: bool) -> ParseResponse:
     current_section_path: list[str] = []
     title: Optional[str] = None
 
+    # OCR-derived Markdown has no PDF page provenance (item.prov is empty),
+    # so page numbers there come from our own "## Page N" headings
+    # (see ocr_service.py) rather than from Docling's per-item metadata.
+    current_ocr_page: Optional[int] = None
+
     for item, _level in doc.iterate_items():
         label = getattr(item, "label", None)
         page_number = _item_page_no(item)
+        if page_number is None and ocr_used:
+            page_number = current_ocr_page
 
         if label == DocItemLabel.TITLE:
             text = getattr(item, "text", "") or ""
@@ -85,7 +94,13 @@ def _parse_with_docling(source, ocr_used: bool) -> ParseResponse:
             text = getattr(item, "text", "") or ""
             level = _heading_level(item)
             headings.append(Heading(level=level, text=text, page_number=page_number))
-            current_section_path = current_section_path[: level - 1] + [text]
+
+            ocr_page_match = _OCR_PAGE_HEADING_RE.match(text) if ocr_used else None
+            if ocr_page_match:
+                current_ocr_page = int(ocr_page_match.group(1))
+                page_number = current_ocr_page
+            else:
+                current_section_path = current_section_path[: level - 1] + [text]
             continue
 
         if label == DocItemLabel.TABLE:
