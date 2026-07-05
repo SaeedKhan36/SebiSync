@@ -1,8 +1,24 @@
+import type { Context as HonoContext } from "hono";
 import { prisma } from "@sebi/db";
+import { authenticateRequest } from "../lib/auth";
 
-// No auth/session yet — Clerk org context can be layered on later via a header.
-export function createContext() {
-  return { prisma };
+export async function createContext(_opts: unknown, c: HonoContext) {
+  const auth = await authenticateRequest(c.req.raw);
+
+  let intermediaryId: string | null = null;
+  if (auth?.orgId) {
+    const intermediary = await prisma.intermediary.findUnique({
+      where: { clerkOrgId: auth.orgId },
+    });
+    intermediaryId = intermediary?.id ?? null;
+  }
+
+  return {
+    prisma,
+    userId: auth?.userId ?? null,
+    orgId: auth?.orgId ?? null,
+    intermediaryId,
+  };
 }
 
-export type Context = ReturnType<typeof createContext>;
+export type Context = Awaited<ReturnType<typeof createContext>>;

@@ -110,7 +110,11 @@ model Obligation {
   documentId String
   document   RegulatoryDocument @relation(fields: [documentId], references: [id])
 
-  code            String  @unique // e.g. "IA-RISK-PROFILING-01"
+  // Unique per-document, not globally: the LLM assigns human-readable
+  // mnemonic codes (e.g. "IA-RISK-PROFILING-01") which different circulars
+  // can plausibly reuse verbatim, especially when a prompt's own worked
+  // examples suggest that exact code.
+  code            String // e.g. "IA-RISK-PROFILING-01"
   title           String
   description     String
   obligatedAction String
@@ -137,6 +141,8 @@ model Obligation {
   checklistItems       ComplianceChecklistItem[]
   auditLogs            AuditLogEntry[]
   triggerEvents        TriggerEvent[]
+
+  @@unique([documentId, code])
 }
 
 model ObligationSourceChunk {
