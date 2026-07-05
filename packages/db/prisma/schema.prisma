@@ -33,6 +33,7 @@ model Intermediary {
   clients        Client[]
   checklistItems ComplianceChecklistItem[]
   auditLogs      AuditLogEntry[]
+  triggerEvents  TriggerEvent[]
 }
 
 model Client {
@@ -45,6 +46,7 @@ model Client {
 
   checklistItems  ComplianceChecklistItem[]
   evidenceRecords EvidenceRecord[]
+  triggerEvents   TriggerEvent[]
 }
 
 // -------------------- Regulatory documents --------------------
@@ -134,6 +136,7 @@ model Obligation {
   sourceChunks         ObligationSourceChunk[]
   checklistItems       ComplianceChecklistItem[]
   auditLogs            AuditLogEntry[]
+  triggerEvents        TriggerEvent[]
 }
 
 model ObligationSourceChunk {
@@ -171,6 +174,9 @@ model ComplianceChecklistItem {
   assignedToUserId String?
   lastEvidenceAt   DateTime?
 
+  triggerEventId String?       @unique
+  triggerEvent   TriggerEvent? @relation(fields: [triggerEventId], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -179,6 +185,27 @@ model ComplianceChecklistItem {
   auditLogs       AuditLogEntry[]
 
   @@index([intermediaryId, status])
+}
+
+// A discrete event that starts a deadline clock for a PER_EVENT obligation
+// (e.g. a SCORES complaint starting the 21-day resolution window).
+model TriggerEvent {
+  id             String       @id @default(cuid())
+  obligationId   String
+  obligation     Obligation   @relation(fields: [obligationId], references: [id])
+  intermediaryId String
+  intermediary   Intermediary @relation(fields: [intermediaryId], references: [id])
+  clientId       String?
+  client         Client?      @relation(fields: [clientId], references: [id])
+
+  eventType   String // e.g. "SCORES_COMPLAINT"
+  eventDate   DateTime // when the clock starts (e.g. complaint receipt date)
+  referenceNo String?
+  metadata    Json?
+
+  createdAt DateTime @default(now())
+
+  checklistItem ComplianceChecklistItem?
 }
 
 model EvidenceRecord {
@@ -230,9 +257,12 @@ model ComplianceGap {
 // -------------------- Audit trail --------------------
 
 model AuditLogEntry {
-  id             String       @id @default(cuid())
-  intermediaryId String
-  intermediary   Intermediary @relation(fields: [intermediaryId], references: [id])
+  id             String        @id @default(cuid())
+  // Nullable: global regulatory events (document ingestion, obligation
+  // extraction/publish) aren't tied to any one tenant; only per-tenant
+  // events (checklist/evidence/gap activity) set this.
+  intermediaryId String?
+  intermediary   Intermediary? @relation(fields: [intermediaryId], references: [id])
 
   entityType String // "Obligation" | "ChecklistItem" | "EvidenceRecord" | "ComplianceGap"
   entityId   String
