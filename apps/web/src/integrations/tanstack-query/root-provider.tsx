@@ -1,25 +1,32 @@
 import type { ReactNode } from 'react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClient } from '@tanstack/react-query'
 import superjson from 'superjson'
-import { createTRPCClient, httpBatchStreamLink } from '@trpc/client'
+import { createTRPCClient, httpBatchLink } from '@trpc/client'
 import { createTRPCOptionsProxy } from '@trpc/tanstack-react-query'
 
-import type { TRPCRouter } from '#/integrations/trpc/router'
+import type { AppRouter } from '@sebi/worker'
 import { TRPCProvider } from '#/integrations/trpc/react'
 
 function getUrl() {
-  const base = (() => {
-    if (typeof window !== 'undefined') return ''
-    return `http://localhost:${process.env.PORT ?? 3000}`
-  })()
-  return `${base}/api/trpc`
+  const base = import.meta.env.VITE_WORKER_URL ?? 'http://localhost:8787'
+  return `${base}/trpc`
 }
 
-export const trpcClient = createTRPCClient<TRPCRouter>({
+// The real @sebi/worker backend has no transformer configured (plain JSON),
+// so the client must not use superjson for the wire format either — this is
+// a separate concern from the QueryClient's own dehydrate/hydrate transform
+// below, which only affects in-app React Query cache serialization.
+export const trpcClient = createTRPCClient<AppRouter>({
   links: [
-    httpBatchStreamLink({
-      transformer: superjson,
+    httpBatchLink({
       url: getUrl(),
+      // Forwards the active Clerk session token so the backend's Hono/tRPC
+      // auth middleware can verify it (see apps/worker/src/lib/auth.ts).
+      async headers() {
+        if (typeof window === 'undefined') return {}
+        const token = await window.Clerk?.session?.getToken()
+        return token ? { Authorization: `Bearer ${token}` } : {}
+      },
     }),
   ],
 })
