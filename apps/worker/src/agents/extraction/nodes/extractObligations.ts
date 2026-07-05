@@ -31,15 +31,34 @@ export async function extractObligations(
   const allCandidates: ObligationCandidate[] = [];
   const errors: string[] = [];
 
+  const totalBatches = Math.ceil(state.chunks.length / CHUNK_BATCH_SIZE);
+  let requestNumber = 0;
+
   for (let i = 0; i < state.chunks.length; i += CHUNK_BATCH_SIZE) {
     const batch = state.chunks.slice(i, i + CHUNK_BATCH_SIZE);
     const prompt = buildExtractionPrompt(batch, corpusContext);
+
+    requestNumber += 1;
+    const isLastBatch = i + CHUNK_BATCH_SIZE >= state.chunks.length;
+    console.log(
+      `[extractObligations] Gemini call ${requestNumber}/${totalBatches}: ` +
+        `necessary because chunks ${i}-${i + batch.length - 1} of ${state.chunks.length} ` +
+        `have not yet been sent for extraction (no cached/prior result exists for this batch).`,
+    );
 
     const response = await getGenAI().models.generateContent({
       model: "gemini-2.5-flash",
       contents: prompt,
       config: { responseMimeType: "application/json" },
     });
+
+    console.log(
+      `[extractObligations] Gemini call ${requestNumber} complete. model=gemini-2.5-flash ` +
+        `promptTokens=${response.usageMetadata?.promptTokenCount ?? "n/a"} ` +
+        `candidateTokens=${response.usageMetadata?.candidatesTokenCount ?? "n/a"} ` +
+        `totalTokens=${response.usageMetadata?.totalTokenCount ?? "n/a"} ` +
+        `anotherCallRequired=${!isLastBatch} (no retry logic exists in this build regardless of parse outcome)`,
+    );
 
     const rawText = response.text ?? "{}";
     let parsedJson: unknown;
