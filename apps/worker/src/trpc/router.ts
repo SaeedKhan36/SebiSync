@@ -5,6 +5,9 @@ import { checklistRouter } from "./routers/checklist";
 import { evidenceRouter } from "./routers/evidence";
 import { gapRouter } from "./routers/gap";
 import { dashboardRouter } from "./routers/dashboard";
+import { clientRouter } from "./routers/client";
+import { auditRouter } from "./routers/audit";
+import { intermediaryRouter } from "./routers/intermediary";
 
 export const appRouter = router({
   document: documentRouter,
@@ -13,6 +16,9 @@ export const appRouter = router({
   evidence: evidenceRouter,
   gap: gapRouter,
   dashboard: dashboardRouter,
+  client: clientRouter,
+  audit: auditRouter,
+  intermediary: intermediaryRouter,
 });
 
 export type AppRouter = typeof appRouter;

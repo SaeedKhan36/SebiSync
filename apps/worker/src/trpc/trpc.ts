@@ -14,14 +14,22 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
   return next({ ctx: { ...ctx, userId: ctx.userId } });
 });
 
+// Requires a signed-in user AND an active Clerk organization, but NOT that it
+// already be provisioned as an Intermediary — this is the one tier below
+// orgProcedure, used only by intermediary.provision (the procedure that
+// creates that very link, so it can't require it to already exist).
+export const clerkOrgProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (!ctx.orgId) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "No active organization selected" });
+  }
+  return next({ ctx: { ...ctx, orgId: ctx.orgId } });
+});
+
 // Requires a signed-in user AND an active Clerk organization that maps to a
 // provisioned Intermediary. All org-scoped queries should use this so every
 // procedure sees exactly one org's data, resolved server-side (never taken
 // as client input).
-export const orgProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (!ctx.orgId) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "No active organization selected" });
-  }
+export const orgProcedure = clerkOrgProcedure.use(({ ctx, next }) => {
   if (!ctx.intermediaryId) {
     throw new TRPCError({
       code: "FORBIDDEN",

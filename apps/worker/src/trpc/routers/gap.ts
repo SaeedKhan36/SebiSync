@@ -24,6 +24,17 @@ export const gapRouter = router({
       }),
     ),
 
+  get: orgProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
+    const gap = await ctx.prisma.complianceGap.findUniqueOrThrow({
+      where: { id: input.id },
+      include: { checklistItem: { include: { obligation: true, client: true } } },
+    });
+    if (gap.checklistItem.intermediaryId !== ctx.intermediaryId) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Gap belongs to another organization" });
+    }
+    return gap;
+  }),
+
   resolve: orgProcedure.input(resolveGapSchema).mutation(async ({ ctx, input }) => {
     const existing = await ctx.prisma.complianceGap.findUniqueOrThrow({
       where: { id: input.gapId },

@@ -116,15 +116,18 @@ be `true` in the response.
 
 ## Configuration for the TypeScript backend
 
-The `@sebi/worker` backend talks to this service over HTTP. In
-`apps/worker/.env`, set:
+The `@sebi/worker` backend talks to this service over HTTP via
+`DOCLING_SIDECAR_URL` in `apps/worker/.env`. The correct value depends on
+**where the backend process itself is running** relative to the sidecar:
 
-```
-DOCLING_SIDECAR_URL=http://localhost:8000
-```
+| Scenario | `apps/worker/.env` → `DOCLING_SIDECAR_URL` |
+|---|---|
+| Backend runs natively (`pnpm dev`), sidecar runs in Docker (via `docker compose up` below, which publishes the container's port to the host) | `http://localhost:8000` — **unchanged from today**, since the container's port is mapped straight through to `localhost` on the host |
+| Backend *also* containerized on the same Docker Compose network as the sidecar (not set up in this repo yet — the sidecar's `docker-compose.yml` only defines the sidecar itself) | `http://docling-sidecar:8000` — Docker's internal DNS resolves the service name `docling-sidecar` (as defined in `docker-compose.yml`) to the container's IP; `localhost` would instead point at the backend's *own* container and fail to connect |
 
-(Point this at wherever the sidecar is actually deployed in production —
-e.g. a Railway/Fly/Cloud Run URL.)
+No new environment variables are introduced by dockerizing this service —
+`PORT` is the only variable either the app or the container image reads, and
+it already existed in `.env.example`.
 
 The worker calls `POST ${DOCLING_SIDECAR_URL}/parse` with the PDF as
 multipart form data and consumes the structured JSON response to build its
@@ -136,7 +139,51 @@ above is preserved.
 
 ## Docker
 
+### One-command startup
+
+```bash
+cp .env.example .env   # only needed once; PORT=8000 by default
+docker compose up --build
+```
+
+This builds the image and starts the container with a health check attached
+(`GET /health` every 30s). Add `-d` to run in the background. Stop it with
+`docker compose down`.
+
+### Manual build/run (equivalent, without Compose)
+
 ```bash
 docker build -t docling-sidecar .
-docker run -p 8000:8000 --env-file .env docling-sidecar
+docker run -p 8000:8000 --env-file .env --name docling-sidecar docling-sidecar
 ```
+
+### Verifying it works
+
+```bash
+# Health check
+curl http://localhost:8000/health
+# → {"status":"ok"}
+
+# Parse a real PDF
+curl -X POST http://localhost:8000/parse -F "file=@/path/to/document.pdf"
+```
+
+### Notes on what's inside the image
+
+- Base image: `python:3.11-slim-bookworm` (pinned, not just `slim`, so the
+  base doesn't silently drift between builds).
+- `libgl1`/`libglib2.0-0` are installed because `opencv-python`, a transitive
+  dependency of `paddleocr`/`paddlepaddle`, needs them at import time even
+  though we never touch a display.
+- Docling and PaddleOCR download their model weights on first use (cached
+  under the container user's home directory, `~/.cache` and
+  `~/.paddlex/official_models/`). The first `/parse` call after a fresh
+  container start will be noticeably slower than subsequent calls while
+  these download; this is normal, not a hang. Mount a volume at
+  `/home/appuser/.cache` and `/home/appuser/.paddlex` if you want model
+  weights to persist across container restarts instead of re-downloading.
+- Runs as a non-root user (`appuser`) inside the container.
+- `requirements.txt` is unchanged from the already-verified local venv setup
+  (same exact `docling==2.69.1`, `paddleocr==3.7.0`, `paddlepaddle==3.3.1`,
+  etc. that were confirmed working against a real PDF earlier) — no backend
+  code changes were needed for containerization.
