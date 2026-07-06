@@ -2,11 +2,13 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useOrganization } from '@clerk/clerk-react'
 import { PageHeader } from '#/components/layout/PageHeader'
 
-export const Route = createFileRoute('/_authenticated/dashboard/')({ component: DashboardPage })
+export const Route = createFileRoute('/_authenticated/_org/dashboard/')({
+  component: DashboardPage,
+})
 
-// Temporary placement/content: this moves under a new _org layout in
-// Phase 4 (once the org guard exists) and gets replaced with the real
-// dashboard.summary UI in Phase 5.
+// Temporary content: gets replaced with the real dashboard.summary UI in
+// Phase 5. Now correctly nested under the _org layout (Phase 4), which
+// guarantees an active + provisioned org by the time this renders.
 function DashboardPage() {
   const { organization, isLoaded } = useOrganization()
 

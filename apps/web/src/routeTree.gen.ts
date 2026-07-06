@@ -13,7 +13,9 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
-import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
+import { Route as AuthenticatedOrgRouteRouteImport } from './routes/_authenticated/_org/route'
+import { Route as AuthenticatedOrgOnboardingIndexRouteImport } from './routes/_authenticated/_org/onboarding/index'
+import { Route as AuthenticatedOrgDashboardIndexRouteImport } from './routes/_authenticated/_org/dashboard/index'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
@@ -34,45 +36,62 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   path: '/auth/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedDashboardIndexRoute =
-  AuthenticatedDashboardIndexRouteImport.update({
+const AuthenticatedOrgRouteRoute = AuthenticatedOrgRouteRouteImport.update({
+  id: '/_org',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedOrgOnboardingIndexRoute =
+  AuthenticatedOrgOnboardingIndexRouteImport.update({
+    id: '/onboarding/',
+    path: '/onboarding/',
+    getParentRoute: () => AuthenticatedOrgRouteRoute,
+  } as any)
+const AuthenticatedOrgDashboardIndexRoute =
+  AuthenticatedOrgDashboardIndexRouteImport.update({
     id: '/dashboard/',
     path: '/dashboard/',
-    getParentRoute: () => AuthenticatedRouteRoute,
+    getParentRoute: () => AuthenticatedOrgRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
-  '/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/dashboard/': typeof AuthenticatedOrgDashboardIndexRoute
+  '/onboarding/': typeof AuthenticatedOrgOnboardingIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
-  '/dashboard': typeof AuthenticatedDashboardIndexRoute
+  '/dashboard': typeof AuthenticatedOrgDashboardIndexRoute
+  '/onboarding': typeof AuthenticatedOrgOnboardingIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/_authenticated/_org': typeof AuthenticatedOrgRouteRouteWithChildren
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
-  '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
+  '/_authenticated/_org/dashboard/': typeof AuthenticatedOrgDashboardIndexRoute
+  '/_authenticated/_org/onboarding/': typeof AuthenticatedOrgOnboardingIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth/login' | '/auth/register' | '/dashboard/'
+  fullPaths:
+    '/' | '/auth/login' | '/auth/register' | '/dashboard/' | '/onboarding/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth/login' | '/auth/register' | '/dashboard'
+  to: '/' | '/auth/login' | '/auth/register' | '/dashboard' | '/onboarding'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/_authenticated/_org'
     | '/auth/login'
     | '/auth/register'
-    | '/_authenticated/dashboard/'
+    | '/_authenticated/_org/dashboard/'
+    | '/_authenticated/_org/onboarding/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -112,22 +131,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/dashboard/': {
-      id: '/_authenticated/dashboard/'
+    '/_authenticated/_org': {
+      id: '/_authenticated/_org'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedOrgRouteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/_org/onboarding/': {
+      id: '/_authenticated/_org/onboarding/'
+      path: '/onboarding'
+      fullPath: '/onboarding/'
+      preLoaderRoute: typeof AuthenticatedOrgOnboardingIndexRouteImport
+      parentRoute: typeof AuthenticatedOrgRouteRoute
+    }
+    '/_authenticated/_org/dashboard/': {
+      id: '/_authenticated/_org/dashboard/'
       path: '/dashboard'
       fullPath: '/dashboard/'
-      preLoaderRoute: typeof AuthenticatedDashboardIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+      preLoaderRoute: typeof AuthenticatedOrgDashboardIndexRouteImport
+      parentRoute: typeof AuthenticatedOrgRouteRoute
     }
   }
 }
 
+interface AuthenticatedOrgRouteRouteChildren {
+  AuthenticatedOrgDashboardIndexRoute: typeof AuthenticatedOrgDashboardIndexRoute
+  AuthenticatedOrgOnboardingIndexRoute: typeof AuthenticatedOrgOnboardingIndexRoute
+}
+
+const AuthenticatedOrgRouteRouteChildren: AuthenticatedOrgRouteRouteChildren = {
+  AuthenticatedOrgDashboardIndexRoute: AuthenticatedOrgDashboardIndexRoute,
+  AuthenticatedOrgOnboardingIndexRoute: AuthenticatedOrgOnboardingIndexRoute,
+}
+
+const AuthenticatedOrgRouteRouteWithChildren =
+  AuthenticatedOrgRouteRoute._addFileChildren(
+    AuthenticatedOrgRouteRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
+  AuthenticatedOrgRouteRoute: typeof AuthenticatedOrgRouteRouteWithChildren
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
+  AuthenticatedOrgRouteRoute: AuthenticatedOrgRouteRouteWithChildren,
 }
 
 const AuthenticatedRouteRouteWithChildren =
