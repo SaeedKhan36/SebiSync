@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { PageHeader } from '#/components/layout/PageHeader'
 import { Skeleton } from '#/components/ui/skeleton'
-import { AuditTimeline } from '#/components/AuditTimeline'
+import { AuditTimeline, type AuditLogEntry } from '#/components/AuditTimeline'
 import { ChecklistDetailPanel } from '#/features/checklists/components/ChecklistDetailPanel'
 import { GapsSection } from '#/features/checklists/components/GapsSection'
 import { EvidenceList } from '#/features/evidence/components/EvidenceList'
@@ -37,7 +37,7 @@ function ChecklistDetailPage() {
             evidenceRecords={item.evidenceRecords}
             action={<EvidenceUploadDialog checklistItemId={item.id} />}
           />
-          <AuditTimeline entries={auditLog.data ?? []} />
+          <AuditTimeline entries={(auditLog.data ?? []) as AuditLogEntry[]} />
         </div>
       </div>
     </div>

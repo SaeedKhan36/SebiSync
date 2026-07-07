@@ -9,7 +9,24 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '#/components/ui/card'
 import { EmptyState } from '#/components/EmptyState'
 import { formatDate } from '#/lib/format'
-import type { AuditLogEntry } from '#/features/audit/hooks/useAuditLog'
+
+// Hand-written rather than derived from inferRouterOutputs<AppRouter> (the
+// usual output-typing rule) — naming that specific slice as a type alias
+// hits TypeScript's instantiation depth limit (TS2589), apparently from
+// AuditLogEntry's Json? columns combined with the AppRouter's own inference
+// depth. The wire shape is unaffected: createdAt really is a string (no
+// superjson transformer, same as every other date field in this app), and
+// Json columns cross the wire as plain objects regardless of how they're
+// typed here. useAuditLog itself stays a plain, untyped-alias pass-through
+// (adding a `select` there re-triggers the same TS2589), and callers cast at
+// the point they hand data to this component.
+export interface AuditLogEntry {
+  id: string
+  action: string
+  actorType: string
+  actorUserId: string | null
+  createdAt: string
+}
 
 const ACTION_ICONS: Record<string, LucideIcon> = {
   STATUS_CHANGED: ListChecks,
@@ -35,9 +52,13 @@ function actorLabel(entry: AuditLogEntry): string {
   return entry.actorUserId ?? 'User'
 }
 
+interface AuditTimelineProps {
+  entries: AuditLogEntry[]
+}
+
 // Generic — takes entries as a prop so it can be reused wherever audit
 // history needs to render, not just the checklist detail page.
-export function AuditTimeline({ entries }: { entries: AuditLogEntry[] }) {
+export function AuditTimeline({ entries }: AuditTimelineProps) {
   return (
     <Card>
       <CardHeader>
