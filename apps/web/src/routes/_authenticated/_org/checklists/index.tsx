@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
-import { checklistStatusSchema } from '@sebi/schemas'
 import { PageHeader } from '#/components/layout/PageHeader'
 import { Skeleton } from '#/components/ui/skeleton'
 import {
@@ -15,15 +14,22 @@ import { useChecklistList } from '#/features/checklists/hooks/useChecklistList'
 import { useClientOptions } from '#/features/checklists/hooks/useClientOptions'
 import { ChecklistTable } from '#/features/checklists/components/ChecklistTable'
 
+const ALL = 'ALL'
+const STATUS_VALUES = Object.keys(checklistStatusColorMap) as [
+  keyof typeof checklistStatusColorMap,
+  ...Array<keyof typeof checklistStatusColorMap>,
+]
+
+// Defined natively with apps/web's own zod (v4) rather than reusing
+// @sebi/schemas's checklistStatusSchema (zod v3) — mixing a v3 schema
+// instance inside a v4 z.object() call breaks TanStack Router's search-param
+// type inference down to `unknown` (confirmed by typecheck). This is the one
+// spot in the app where the enum's literal values are duplicated instead of
+// imported, specifically because of that cross-version boundary.
 const checklistSearchSchema = z.object({
-  status: checklistStatusSchema.optional(),
+  status: z.enum(STATUS_VALUES).optional(),
   clientId: z.string().optional(),
 })
-
-const ALL = 'ALL'
-const STATUS_VALUES = Object.keys(checklistStatusColorMap) as Array<
-  keyof typeof checklistStatusColorMap
->
 
 export const Route = createFileRoute('/_authenticated/_org/checklists/')({
   component: ChecklistsPage,
