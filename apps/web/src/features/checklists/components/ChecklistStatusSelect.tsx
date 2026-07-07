@@ -7,33 +7,31 @@ import {
   SelectValue,
 } from '#/components/ui/select'
 import { checklistStatusColorMap } from '#/components/status/statusColorMaps'
-import { useUpdateChecklistStatus } from '#/features/checklists/hooks/useUpdateChecklistStatus'
-import type { ChecklistListFilters } from '#/features/checklists/hooks/useChecklistList'
 
 interface ChecklistStatusSelectProps {
-  checklistItemId: string
   status: ChecklistStatus
-  activeFilters: ChecklistListFilters
+  onStatusChange: (status: ChecklistStatus) => void
+  disabled?: boolean
 }
 
 const STATUS_VALUES = Object.keys(checklistStatusColorMap) as ChecklistStatus[]
 
-// Inline, no separate "save" step — changing the value fires the mutation
-// immediately (instant feedback matters for daily workflow, per the
-// architecture doc's optimistic-update guidance).
+// Prop-driven mutation, not a hook call inside this component — the list
+// page (Phase 6) and the detail page (Phase 7) each need a different
+// invalidation strategy (optimistic list patch vs. plain broad invalidate),
+// so they each own their own mutation hook and just pass the callback down.
+// Inline, no separate "save" step — changing the value fires immediately
+// (instant feedback matters for daily workflow, per the architecture doc).
 export function ChecklistStatusSelect({
-  checklistItemId,
   status,
-  activeFilters,
+  onStatusChange,
+  disabled,
 }: ChecklistStatusSelectProps) {
-  const updateStatus = useUpdateChecklistStatus(activeFilters)
-
   return (
     <Select
       value={status}
-      onValueChange={(next) =>
-        updateStatus.mutate({ id: checklistItemId, status: next as ChecklistStatus })
-      }
+      onValueChange={(next) => onStatusChange(next as ChecklistStatus)}
+      disabled={disabled}
     >
       <SelectTrigger size="sm" className="w-36" onClick={(e) => e.stopPropagation()}>
         <SelectValue />

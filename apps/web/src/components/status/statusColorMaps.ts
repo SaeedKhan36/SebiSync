@@ -1,6 +1,7 @@
 import type {
   ChecklistStatus,
   DocStatus,
+  EvidenceType,
   GapSeverity,
   GapType,
   ObligationStatus,
@@ -80,6 +81,14 @@ export const gapTypeLabelMap: Record<GapType, string> = {
   PAST_DEADLINE: 'Past deadline',
   STALE_EVIDENCE: 'Stale evidence',
   INCOMPLETE: 'Incomplete',
+}
+
+// EvidenceType is a category, not a status — plain label, same treatment as GapType.
+export const evidenceTypeLabelMap: Record<EvidenceType, string> = {
+  DOCUMENT: 'Document',
+  FORM_SUBMISSION: 'Form submission',
+  LOG_ENTRY: 'Log entry',
+  ATTESTATION: 'Attestation',
 }
 
 // Recharts needs real color values (SVG fill), not Tailwind class strings —
