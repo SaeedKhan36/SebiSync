@@ -19,6 +19,7 @@ import { Route as AuthLoginSplatRouteImport } from './routes/auth/login/$'
 import { Route as AuthenticatedOrgOnboardingIndexRouteImport } from './routes/_authenticated/_org/onboarding/index'
 import { Route as AuthenticatedOrgDashboardIndexRouteImport } from './routes/_authenticated/_org/dashboard/index'
 import { Route as AuthenticatedOrgChecklistsIndexRouteImport } from './routes/_authenticated/_org/checklists/index'
+import { Route as AuthenticatedOrgChecklistsChecklistItemIdRouteImport } from './routes/_authenticated/_org/checklists/$checklistItemId'
 
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
@@ -71,6 +72,12 @@ const AuthenticatedOrgChecklistsIndexRoute =
     path: '/checklists/',
     getParentRoute: () => AuthenticatedOrgRouteRoute,
   } as any)
+const AuthenticatedOrgChecklistsChecklistItemIdRoute =
+  AuthenticatedOrgChecklistsChecklistItemIdRouteImport.update({
+    id: '/checklists/$checklistItemId',
+    path: '/checklists/$checklistItemId',
+    getParentRoute: () => AuthenticatedOrgRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/auth/register/$': typeof AuthRegisterSplatRoute
   '/auth/login/': typeof AuthLoginIndexRoute
   '/auth/register/': typeof AuthRegisterIndexRoute
+  '/checklists/$checklistItemId': typeof AuthenticatedOrgChecklistsChecklistItemIdRoute
   '/checklists/': typeof AuthenticatedOrgChecklistsIndexRoute
   '/dashboard/': typeof AuthenticatedOrgDashboardIndexRoute
   '/onboarding/': typeof AuthenticatedOrgOnboardingIndexRoute
@@ -88,6 +96,7 @@ export interface FileRoutesByTo {
   '/auth/register/$': typeof AuthRegisterSplatRoute
   '/auth/login': typeof AuthLoginIndexRoute
   '/auth/register': typeof AuthRegisterIndexRoute
+  '/checklists/$checklistItemId': typeof AuthenticatedOrgChecklistsChecklistItemIdRoute
   '/checklists': typeof AuthenticatedOrgChecklistsIndexRoute
   '/dashboard': typeof AuthenticatedOrgDashboardIndexRoute
   '/onboarding': typeof AuthenticatedOrgOnboardingIndexRoute
@@ -101,6 +110,7 @@ export interface FileRoutesById {
   '/auth/register/$': typeof AuthRegisterSplatRoute
   '/auth/login/': typeof AuthLoginIndexRoute
   '/auth/register/': typeof AuthRegisterIndexRoute
+  '/_authenticated/_org/checklists/$checklistItemId': typeof AuthenticatedOrgChecklistsChecklistItemIdRoute
   '/_authenticated/_org/checklists/': typeof AuthenticatedOrgChecklistsIndexRoute
   '/_authenticated/_org/dashboard/': typeof AuthenticatedOrgDashboardIndexRoute
   '/_authenticated/_org/onboarding/': typeof AuthenticatedOrgOnboardingIndexRoute
@@ -113,6 +123,7 @@ export interface FileRouteTypes {
     | '/auth/register/$'
     | '/auth/login/'
     | '/auth/register/'
+    | '/checklists/$checklistItemId'
     | '/checklists/'
     | '/dashboard/'
     | '/onboarding/'
@@ -123,6 +134,7 @@ export interface FileRouteTypes {
     | '/auth/register/$'
     | '/auth/login'
     | '/auth/register'
+    | '/checklists/$checklistItemId'
     | '/checklists'
     | '/dashboard'
     | '/onboarding'
@@ -135,6 +147,7 @@ export interface FileRouteTypes {
     | '/auth/register/$'
     | '/auth/login/'
     | '/auth/register/'
+    | '/_authenticated/_org/checklists/$checklistItemId'
     | '/_authenticated/_org/checklists/'
     | '/_authenticated/_org/dashboard/'
     | '/_authenticated/_org/onboarding/'
@@ -221,16 +234,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrgChecklistsIndexRouteImport
       parentRoute: typeof AuthenticatedOrgRouteRoute
     }
+    '/_authenticated/_org/checklists/$checklistItemId': {
+      id: '/_authenticated/_org/checklists/$checklistItemId'
+      path: '/checklists/$checklistItemId'
+      fullPath: '/checklists/$checklistItemId'
+      preLoaderRoute: typeof AuthenticatedOrgChecklistsChecklistItemIdRouteImport
+      parentRoute: typeof AuthenticatedOrgRouteRoute
+    }
   }
 }
 
 interface AuthenticatedOrgRouteRouteChildren {
+  AuthenticatedOrgChecklistsChecklistItemIdRoute: typeof AuthenticatedOrgChecklistsChecklistItemIdRoute
   AuthenticatedOrgChecklistsIndexRoute: typeof AuthenticatedOrgChecklistsIndexRoute
   AuthenticatedOrgDashboardIndexRoute: typeof AuthenticatedOrgDashboardIndexRoute
   AuthenticatedOrgOnboardingIndexRoute: typeof AuthenticatedOrgOnboardingIndexRoute
 }
 
 const AuthenticatedOrgRouteRouteChildren: AuthenticatedOrgRouteRouteChildren = {
+  AuthenticatedOrgChecklistsChecklistItemIdRoute:
+    AuthenticatedOrgChecklistsChecklistItemIdRoute,
   AuthenticatedOrgChecklistsIndexRoute: AuthenticatedOrgChecklistsIndexRoute,
   AuthenticatedOrgDashboardIndexRoute: AuthenticatedOrgDashboardIndexRoute,
   AuthenticatedOrgOnboardingIndexRoute: AuthenticatedOrgOnboardingIndexRoute,
@@ -263,12 +286,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
