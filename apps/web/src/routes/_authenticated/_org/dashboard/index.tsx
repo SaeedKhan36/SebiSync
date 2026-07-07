@@ -1,32 +1,49 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useOrganization } from '@clerk/clerk-react'
 import { PageHeader } from '#/components/layout/PageHeader'
+import { Skeleton } from '#/components/ui/skeleton'
+import { useDashboardSummary } from '#/features/dashboard/hooks/useDashboardSummary'
+import { SummaryCards } from '#/features/dashboard/components/SummaryCards'
+import { ChecklistStatusChart } from '#/features/dashboard/components/ChecklistStatusChart'
+import { GapSeverityChart } from '#/features/dashboard/components/GapSeverityChart'
+import { UpcomingDeadlinesList } from '#/features/dashboard/components/UpcomingDeadlinesList'
 
 export const Route = createFileRoute('/_authenticated/_org/dashboard/')({
   component: DashboardPage,
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData(context.trpc.dashboard.summary.queryOptions()),
+  pendingComponent: DashboardSkeleton,
 })
 
-// Temporary content: gets replaced with the real dashboard.summary UI in
-// Phase 5. Now correctly nested under the _org layout (Phase 4), which
-// guarantees an active + provisioned org by the time this renders.
 function DashboardPage() {
-  const { organization, isLoaded } = useOrganization()
+  const { data: summary } = useDashboardSummary()
 
   return (
     <div className="space-y-6">
       <PageHeader title="Dashboard" />
-      {!isLoaded ? (
-        <p>Loading organization...</p>
-      ) : !organization ? (
-        <p className="text-muted-foreground">
-          Select or create an organization above to view its compliance data.
-        </p>
-      ) : (
-        <p>
-          Signed in to <strong>{organization.name}</strong>. Checklist/gap/audit views go here
-          (see Phase 5+).
-        </p>
-      )}
+      <SummaryCards summary={summary} />
+      <div className="grid gap-4 md:grid-cols-2">
+        <ChecklistStatusChart data={summary.checklistByStatus} />
+        <GapSeverityChart data={summary.openGapsBySeverity} />
+      </div>
+      <UpcomingDeadlinesList deadlines={summary.upcomingDeadlines} />
+    </div>
+  )
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-6">
+      <Skeleton className="h-9 w-48" />
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-24" />
+        ))}
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        <Skeleton className="h-72" />
+        <Skeleton className="h-72" />
+      </div>
+      <Skeleton className="h-48" />
     </div>
   )
 }

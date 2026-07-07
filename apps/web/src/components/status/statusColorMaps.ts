@@ -81,3 +81,22 @@ export const gapTypeLabelMap: Record<GapType, string> = {
   STALE_EVIDENCE: 'Stale evidence',
   INCOMPLETE: 'Incomplete',
 }
+
+// Recharts needs real color values (SVG fill), not Tailwind class strings —
+// these hex values are chosen to match the same semantic colors used by the
+// StatusBadge classNames above, so charts and badges stay visually
+// consistent by construction rather than by coincidence.
+export const checklistStatusChartColorMap: Record<ChecklistStatus, string> = {
+  PENDING: '#94a3b8', // slate-400, matches secondary
+  IN_PROGRESS: '#2563eb', // blue-600
+  COMPLIANT: '#059669', // emerald-600
+  GAP: '#dc2626', // red-600, matches destructive
+  NOT_APPLICABLE: '#cbd5e1', // slate-300, matches outline/muted
+}
+
+export const gapSeverityChartColorMap: Record<GapSeverity, string> = {
+  LOW: '#94a3b8', // slate-400
+  MEDIUM: '#f59e0b', // amber-500
+  HIGH: '#f97316', // orange-500
+  CRITICAL: '#dc2626', // red-600
+}

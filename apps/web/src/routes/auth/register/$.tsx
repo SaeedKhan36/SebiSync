@@ -1,7 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { SignUp } from '@clerk/clerk-react'
 
-export const Route = createFileRoute('/auth/register')({ component: RegisterPage })
+// Splat/catch-all for Clerk's own sub-paths under /auth/register (e.g. the
+// Google OAuth redirect target /auth/register/sso-callback) — same
+// reasoning as routes/auth/login/$.tsx.
+export const Route = createFileRoute('/auth/register/$')({ component: RegisterPage })
 
 function RegisterPage() {
   return (

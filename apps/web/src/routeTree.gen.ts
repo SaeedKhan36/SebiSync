@@ -11,9 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthRegisterRouteImport } from './routes/auth/register'
-import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AuthenticatedOrgRouteRouteImport } from './routes/_authenticated/_org/route'
+import { Route as AuthRegisterIndexRouteImport } from './routes/auth/register/index'
+import { Route as AuthLoginIndexRouteImport } from './routes/auth/login/index'
+import { Route as AuthRegisterSplatRouteImport } from './routes/auth/register/$'
+import { Route as AuthLoginSplatRouteImport } from './routes/auth/login/$'
 import { Route as AuthenticatedOrgOnboardingIndexRouteImport } from './routes/_authenticated/_org/onboarding/index'
 import { Route as AuthenticatedOrgDashboardIndexRouteImport } from './routes/_authenticated/_org/dashboard/index'
 
@@ -26,19 +28,29 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthRegisterRoute = AuthRegisterRouteImport.update({
-  id: '/auth/register',
-  path: '/auth/register',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthLoginRoute = AuthLoginRouteImport.update({
-  id: '/auth/login',
-  path: '/auth/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedOrgRouteRoute = AuthenticatedOrgRouteRouteImport.update({
   id: '/_org',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthRegisterIndexRoute = AuthRegisterIndexRouteImport.update({
+  id: '/auth/register/',
+  path: '/auth/register/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthLoginIndexRoute = AuthLoginIndexRouteImport.update({
+  id: '/auth/login/',
+  path: '/auth/login/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRegisterSplatRoute = AuthRegisterSplatRouteImport.update({
+  id: '/auth/register/$',
+  path: '/auth/register/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthLoginSplatRoute = AuthLoginSplatRouteImport.update({
+  id: '/auth/login/$',
+  path: '/auth/login/$',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedOrgOnboardingIndexRoute =
   AuthenticatedOrgOnboardingIndexRouteImport.update({
@@ -55,15 +67,19 @@ const AuthenticatedOrgDashboardIndexRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/auth/login': typeof AuthLoginRoute
-  '/auth/register': typeof AuthRegisterRoute
+  '/auth/login/$': typeof AuthLoginSplatRoute
+  '/auth/register/$': typeof AuthRegisterSplatRoute
+  '/auth/login/': typeof AuthLoginIndexRoute
+  '/auth/register/': typeof AuthRegisterIndexRoute
   '/dashboard/': typeof AuthenticatedOrgDashboardIndexRoute
   '/onboarding/': typeof AuthenticatedOrgOnboardingIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/auth/login': typeof AuthLoginRoute
-  '/auth/register': typeof AuthRegisterRoute
+  '/auth/login/$': typeof AuthLoginSplatRoute
+  '/auth/register/$': typeof AuthRegisterSplatRoute
+  '/auth/login': typeof AuthLoginIndexRoute
+  '/auth/register': typeof AuthRegisterIndexRoute
   '/dashboard': typeof AuthenticatedOrgDashboardIndexRoute
   '/onboarding': typeof AuthenticatedOrgOnboardingIndexRoute
 }
@@ -72,24 +88,41 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_authenticated/_org': typeof AuthenticatedOrgRouteRouteWithChildren
-  '/auth/login': typeof AuthLoginRoute
-  '/auth/register': typeof AuthRegisterRoute
+  '/auth/login/$': typeof AuthLoginSplatRoute
+  '/auth/register/$': typeof AuthRegisterSplatRoute
+  '/auth/login/': typeof AuthLoginIndexRoute
+  '/auth/register/': typeof AuthRegisterIndexRoute
   '/_authenticated/_org/dashboard/': typeof AuthenticatedOrgDashboardIndexRoute
   '/_authenticated/_org/onboarding/': typeof AuthenticatedOrgOnboardingIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/auth/login' | '/auth/register' | '/dashboard/' | '/onboarding/'
+    | '/'
+    | '/auth/login/$'
+    | '/auth/register/$'
+    | '/auth/login/'
+    | '/auth/register/'
+    | '/dashboard/'
+    | '/onboarding/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth/login' | '/auth/register' | '/dashboard' | '/onboarding'
+  to:
+    | '/'
+    | '/auth/login/$'
+    | '/auth/register/$'
+    | '/auth/login'
+    | '/auth/register'
+    | '/dashboard'
+    | '/onboarding'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/_authenticated/_org'
-    | '/auth/login'
-    | '/auth/register'
+    | '/auth/login/$'
+    | '/auth/register/$'
+    | '/auth/login/'
+    | '/auth/register/'
     | '/_authenticated/_org/dashboard/'
     | '/_authenticated/_org/onboarding/'
   fileRoutesById: FileRoutesById
@@ -97,8 +130,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  AuthLoginRoute: typeof AuthLoginRoute
-  AuthRegisterRoute: typeof AuthRegisterRoute
+  AuthLoginSplatRoute: typeof AuthLoginSplatRoute
+  AuthRegisterSplatRoute: typeof AuthRegisterSplatRoute
+  AuthLoginIndexRoute: typeof AuthLoginIndexRoute
+  AuthRegisterIndexRoute: typeof AuthRegisterIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -117,26 +152,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth/register': {
-      id: '/auth/register'
-      path: '/auth/register'
-      fullPath: '/auth/register'
-      preLoaderRoute: typeof AuthRegisterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/auth/login': {
-      id: '/auth/login'
-      path: '/auth/login'
-      fullPath: '/auth/login'
-      preLoaderRoute: typeof AuthLoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/_org': {
       id: '/_authenticated/_org'
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedOrgRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/auth/register/': {
+      id: '/auth/register/'
+      path: '/auth/register'
+      fullPath: '/auth/register/'
+      preLoaderRoute: typeof AuthRegisterIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/login/': {
+      id: '/auth/login/'
+      path: '/auth/login'
+      fullPath: '/auth/login/'
+      preLoaderRoute: typeof AuthLoginIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/register/$': {
+      id: '/auth/register/$'
+      path: '/auth/register/$'
+      fullPath: '/auth/register/$'
+      preLoaderRoute: typeof AuthRegisterSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/login/$': {
+      id: '/auth/login/$'
+      path: '/auth/login/$'
+      fullPath: '/auth/login/$'
+      preLoaderRoute: typeof AuthLoginSplatRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/_org/onboarding/': {
       id: '/_authenticated/_org/onboarding/'
@@ -184,8 +233,10 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  AuthLoginRoute: AuthLoginRoute,
-  AuthRegisterRoute: AuthRegisterRoute,
+  AuthLoginSplatRoute: AuthLoginSplatRoute,
+  AuthRegisterSplatRoute: AuthRegisterSplatRoute,
+  AuthLoginIndexRoute: AuthLoginIndexRoute,
+  AuthRegisterIndexRoute: AuthRegisterIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

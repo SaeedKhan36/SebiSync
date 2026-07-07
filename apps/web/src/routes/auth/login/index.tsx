@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { SignIn } from '@clerk/clerk-react'
 
-export const Route = createFileRoute('/auth/login')({ component: LoginPage })
+export const Route = createFileRoute('/auth/login/')({ component: LoginPage })
 
 function LoginPage() {
   return (
