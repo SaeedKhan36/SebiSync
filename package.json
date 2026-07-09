@@ -2,21 +2,22 @@
   "name": "sebi-agentic-compliance",
   "private": true,
   "version": "0.0.1",
+  "type": "module",
+  "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
     "typecheck": "turbo run typecheck",
     "lint": "turbo run lint",
-    "db:migrate": "pnpm --filter @sebi/db exec prisma migrate dev",
-    "db:seed": "pnpm --filter @sebi/db exec tsx prisma/seed.ts",
-    "db:generate": "pnpm --filter @sebi/db exec prisma generate"
+    "db:generate": "turbo run db:generate --filter=@sebi/db",
+    "db:migrate": "turbo run db:migrate --filter=@sebi/db",
+    "db:seed": "turbo run db:seed --filter=@sebi/db",
+    "db:studio": "turbo run db:studio --filter=@sebi/db"
   },
   "devDependencies": {
     "turbo": "^2.3.0",
     "typescript": "^5.7.0"
   },
-  "packageManager": "pnpm@10.30.0",
-  "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "lightningcss"]
-  }
+  "packageManager": "bun@1.3.1",
+  "trustedDependencies": ["esbuild", "lightningcss", "@prisma/client", "prisma"]
 }

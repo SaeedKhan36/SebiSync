@@ -6,9 +6,10 @@
   "main": "index.ts",
   "types": "index.ts",
   "scripts": {
-    "generate": "prisma generate",
-    "migrate": "prisma migrate dev",
-    "seed": "tsx prisma/seed.ts",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
