@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { PageHeader } from '#/components/layout/PageHeader'
 import { Skeleton } from '#/components/ui/skeleton'
 import { Button } from '#/components/ui/button'
@@ -69,7 +69,9 @@ function DocumentDetailPage() {
 
       {document.status === 'EXTRACTED' && (
         <Button asChild>
-          <a href={`/obligations?documentId=${document.id}`}>View obligations</a>
+          <Link to="/obligations" search={{ documentId: document.id }}>
+            View obligations
+          </Link>
         </Button>
       )}
 

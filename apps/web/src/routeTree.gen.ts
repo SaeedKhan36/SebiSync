@@ -14,8 +14,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedOrgRouteRouteImport } from './routes/_authenticated/_org/route'
 import { Route as AuthRegisterIndexRouteImport } from './routes/auth/register/index'
 import { Route as AuthLoginIndexRouteImport } from './routes/auth/login/index'
+import { Route as AuthenticatedObligationsIndexRouteImport } from './routes/_authenticated/obligations/index'
+import { Route as AuthenticatedDocumentsIndexRouteImport } from './routes/_authenticated/documents/index'
 import { Route as AuthRegisterSplatRouteImport } from './routes/auth/register/$'
 import { Route as AuthLoginSplatRouteImport } from './routes/auth/login/$'
+import { Route as AuthenticatedObligationsReviewRouteImport } from './routes/_authenticated/obligations/review'
+import { Route as AuthenticatedObligationsObligationIdRouteImport } from './routes/_authenticated/obligations/$obligationId'
+import { Route as AuthenticatedDocumentsDocumentIdRouteImport } from './routes/_authenticated/documents/$documentId'
 import { Route as AuthenticatedOrgOnboardingIndexRouteImport } from './routes/_authenticated/_org/onboarding/index'
 import { Route as AuthenticatedOrgGapsIndexRouteImport } from './routes/_authenticated/_org/gaps/index'
 import { Route as AuthenticatedOrgDashboardIndexRouteImport } from './routes/_authenticated/_org/dashboard/index'
@@ -46,6 +51,18 @@ const AuthLoginIndexRoute = AuthLoginIndexRouteImport.update({
   path: '/auth/login/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedObligationsIndexRoute =
+  AuthenticatedObligationsIndexRouteImport.update({
+    id: '/obligations/',
+    path: '/obligations/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDocumentsIndexRoute =
+  AuthenticatedDocumentsIndexRouteImport.update({
+    id: '/documents/',
+    path: '/documents/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthRegisterSplatRoute = AuthRegisterSplatRouteImport.update({
   id: '/auth/register/$',
   path: '/auth/register/$',
@@ -56,6 +73,24 @@ const AuthLoginSplatRoute = AuthLoginSplatRouteImport.update({
   path: '/auth/login/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedObligationsReviewRoute =
+  AuthenticatedObligationsReviewRouteImport.update({
+    id: '/obligations/review',
+    path: '/obligations/review',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedObligationsObligationIdRoute =
+  AuthenticatedObligationsObligationIdRouteImport.update({
+    id: '/obligations/$obligationId',
+    path: '/obligations/$obligationId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDocumentsDocumentIdRoute =
+  AuthenticatedDocumentsDocumentIdRouteImport.update({
+    id: '/documents/$documentId',
+    path: '/documents/$documentId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedOrgOnboardingIndexRoute =
   AuthenticatedOrgOnboardingIndexRouteImport.update({
     id: '/onboarding/',
@@ -95,8 +130,13 @@ const AuthenticatedOrgChecklistsChecklistItemIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/documents/$documentId': typeof AuthenticatedDocumentsDocumentIdRoute
+  '/obligations/$obligationId': typeof AuthenticatedObligationsObligationIdRoute
+  '/obligations/review': typeof AuthenticatedObligationsReviewRoute
   '/auth/login/$': typeof AuthLoginSplatRoute
   '/auth/register/$': typeof AuthRegisterSplatRoute
+  '/documents/': typeof AuthenticatedDocumentsIndexRoute
+  '/obligations/': typeof AuthenticatedObligationsIndexRoute
   '/auth/login/': typeof AuthLoginIndexRoute
   '/auth/register/': typeof AuthRegisterIndexRoute
   '/checklists/$checklistItemId': typeof AuthenticatedOrgChecklistsChecklistItemIdRoute
@@ -108,8 +148,13 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/documents/$documentId': typeof AuthenticatedDocumentsDocumentIdRoute
+  '/obligations/$obligationId': typeof AuthenticatedObligationsObligationIdRoute
+  '/obligations/review': typeof AuthenticatedObligationsReviewRoute
   '/auth/login/$': typeof AuthLoginSplatRoute
   '/auth/register/$': typeof AuthRegisterSplatRoute
+  '/documents': typeof AuthenticatedDocumentsIndexRoute
+  '/obligations': typeof AuthenticatedObligationsIndexRoute
   '/auth/login': typeof AuthLoginIndexRoute
   '/auth/register': typeof AuthRegisterIndexRoute
   '/checklists/$checklistItemId': typeof AuthenticatedOrgChecklistsChecklistItemIdRoute
@@ -124,8 +169,13 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_authenticated/_org': typeof AuthenticatedOrgRouteRouteWithChildren
+  '/_authenticated/documents/$documentId': typeof AuthenticatedDocumentsDocumentIdRoute
+  '/_authenticated/obligations/$obligationId': typeof AuthenticatedObligationsObligationIdRoute
+  '/_authenticated/obligations/review': typeof AuthenticatedObligationsReviewRoute
   '/auth/login/$': typeof AuthLoginSplatRoute
   '/auth/register/$': typeof AuthRegisterSplatRoute
+  '/_authenticated/documents/': typeof AuthenticatedDocumentsIndexRoute
+  '/_authenticated/obligations/': typeof AuthenticatedObligationsIndexRoute
   '/auth/login/': typeof AuthLoginIndexRoute
   '/auth/register/': typeof AuthRegisterIndexRoute
   '/_authenticated/_org/checklists/$checklistItemId': typeof AuthenticatedOrgChecklistsChecklistItemIdRoute
@@ -139,8 +189,13 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/documents/$documentId'
+    | '/obligations/$obligationId'
+    | '/obligations/review'
     | '/auth/login/$'
     | '/auth/register/$'
+    | '/documents/'
+    | '/obligations/'
     | '/auth/login/'
     | '/auth/register/'
     | '/checklists/$checklistItemId'
@@ -152,8 +207,13 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/documents/$documentId'
+    | '/obligations/$obligationId'
+    | '/obligations/review'
     | '/auth/login/$'
     | '/auth/register/$'
+    | '/documents'
+    | '/obligations'
     | '/auth/login'
     | '/auth/register'
     | '/checklists/$checklistItemId'
@@ -167,8 +227,13 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/_authenticated/_org'
+    | '/_authenticated/documents/$documentId'
+    | '/_authenticated/obligations/$obligationId'
+    | '/_authenticated/obligations/review'
     | '/auth/login/$'
     | '/auth/register/$'
+    | '/_authenticated/documents/'
+    | '/_authenticated/obligations/'
     | '/auth/login/'
     | '/auth/register/'
     | '/_authenticated/_org/checklists/$checklistItemId'
@@ -225,6 +290,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/obligations/': {
+      id: '/_authenticated/obligations/'
+      path: '/obligations'
+      fullPath: '/obligations/'
+      preLoaderRoute: typeof AuthenticatedObligationsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/documents/': {
+      id: '/_authenticated/documents/'
+      path: '/documents'
+      fullPath: '/documents/'
+      preLoaderRoute: typeof AuthenticatedDocumentsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/auth/register/$': {
       id: '/auth/register/$'
       path: '/auth/register/$'
@@ -238,6 +317,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/auth/login/$'
       preLoaderRoute: typeof AuthLoginSplatRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/obligations/review': {
+      id: '/_authenticated/obligations/review'
+      path: '/obligations/review'
+      fullPath: '/obligations/review'
+      preLoaderRoute: typeof AuthenticatedObligationsReviewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/obligations/$obligationId': {
+      id: '/_authenticated/obligations/$obligationId'
+      path: '/obligations/$obligationId'
+      fullPath: '/obligations/$obligationId'
+      preLoaderRoute: typeof AuthenticatedObligationsObligationIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/documents/$documentId': {
+      id: '/_authenticated/documents/$documentId'
+      path: '/documents/$documentId'
+      fullPath: '/documents/$documentId'
+      preLoaderRoute: typeof AuthenticatedDocumentsDocumentIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/_org/onboarding/': {
       id: '/_authenticated/_org/onboarding/'
@@ -310,10 +410,21 @@ const AuthenticatedOrgRouteRouteWithChildren =
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedOrgRouteRoute: typeof AuthenticatedOrgRouteRouteWithChildren
+  AuthenticatedDocumentsDocumentIdRoute: typeof AuthenticatedDocumentsDocumentIdRoute
+  AuthenticatedObligationsObligationIdRoute: typeof AuthenticatedObligationsObligationIdRoute
+  AuthenticatedObligationsReviewRoute: typeof AuthenticatedObligationsReviewRoute
+  AuthenticatedDocumentsIndexRoute: typeof AuthenticatedDocumentsIndexRoute
+  AuthenticatedObligationsIndexRoute: typeof AuthenticatedObligationsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOrgRouteRoute: AuthenticatedOrgRouteRouteWithChildren,
+  AuthenticatedDocumentsDocumentIdRoute: AuthenticatedDocumentsDocumentIdRoute,
+  AuthenticatedObligationsObligationIdRoute:
+    AuthenticatedObligationsObligationIdRoute,
+  AuthenticatedObligationsReviewRoute: AuthenticatedObligationsReviewRoute,
+  AuthenticatedDocumentsIndexRoute: AuthenticatedDocumentsIndexRoute,
+  AuthenticatedObligationsIndexRoute: AuthenticatedObligationsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
