@@ -1,12 +1,24 @@
 import { TRPCError } from "@trpc/server";
 import { provisionIntermediarySchema } from "@sebi/schemas";
-import { router, protectedProcedure, clerkOrgProcedure } from "../trpc";
+import { router, protectedProcedure, clerkOrgProcedure, orgProcedure } from "../trpc";
 import { writeAuditLog } from "../../lib/audit";
 
 export const intermediaryRouter = router({
   // Needed to populate the category selector on the provisioning form.
   listCategories: protectedProcedure.query(({ ctx }) =>
     ctx.prisma.intermediaryCategory.findMany({ orderBy: { name: "asc" } }),
+  ),
+
+  // Read-only — the Settings/Organization page. orgProcedure already
+  // guarantees ctx.intermediaryId resolves to a provisioned row.
+  getCurrent: orgProcedure.query(({ ctx }) =>
+    ctx.prisma.intermediary.findUniqueOrThrow({
+      where: { id: ctx.intermediaryId },
+      include: {
+        category: true,
+        _count: { select: { clients: true, checklistItems: true } },
+      },
+    }),
   ),
 
   provision: clerkOrgProcedure

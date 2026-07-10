@@ -2,17 +2,16 @@ import { Link } from '@tanstack/react-router'
 import { AlertTriangle, FileText, Gavel, LayoutDashboard, ListChecks, Settings } from 'lucide-react'
 import { cn } from '#/lib/utils'
 
-// Static nav list. Every item except Settings now resolves to a registered
-// route (Dashboard: Phase 3, Checklists: Phase 6, Gaps: Phase 8,
-// Documents/Obligations: Phase 9) — Settings still points at its planned
-// future path and will 404 until it's built.
+// Static nav list. Every item now resolves to a registered route (Dashboard:
+// Phase 3, Checklists: Phase 6, Gaps: Phase 8, Documents/Obligations:
+// Phase 9, Settings: Phase 11).
 const NAV_ITEMS = [
   { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard, registered: true },
   { label: 'Checklists', to: '/checklists', icon: ListChecks, registered: true },
   { label: 'Gaps', to: '/gaps', icon: AlertTriangle, registered: true },
   { label: 'Documents', to: '/documents', icon: FileText, registered: true },
   { label: 'Obligations', to: '/obligations', icon: Gavel, registered: true },
-  { label: 'Settings', to: '/settings/organization', icon: Settings, registered: false },
+  { label: 'Settings', to: '/settings/organization', icon: Settings, registered: true },
 ] as const
 
 // Shared between the desktop <aside> below and AppTopbar's mobile Sheet nav
