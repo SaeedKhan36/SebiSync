@@ -6,6 +6,7 @@ import { setupRouterSsrQueryIntegration } from '@tanstack/react-router-ssr-query
 import TanstackQueryProvider, {
   getContext,
 } from './integrations/tanstack-query/root-provider'
+import { ErrorBoundaryFallback, NotFoundFallback } from './components/ErrorBoundaryFallback'
 
 export function getRouter() {
   const context = getContext()
@@ -16,6 +17,8 @@ export function getRouter() {
     scrollRestoration: true,
     defaultPreload: 'intent',
     defaultPreloadStaleTime: 0,
+    defaultErrorComponent: ErrorBoundaryFallback,
+    defaultNotFoundComponent: NotFoundFallback,
 
     Wrap: (props: { children: ReactNode }) => {
       return (

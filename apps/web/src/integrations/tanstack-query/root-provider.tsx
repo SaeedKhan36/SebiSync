@@ -12,6 +12,20 @@ function getUrl() {
   return `${base}/trpc`
 }
 
+// With SSR disabled for /_authenticated (see that route's comment), route
+// loaders now fire entirely client-side — but they can fire before Clerk's
+// browser SDK has finished restoring the session from cookies, leaving
+// window.Clerk.session momentarily null even for an actually-signed-in user.
+// Poll briefly rather than racing it: resolves in a few ms in practice, and
+// still correctly falls through to "no token" for a genuinely signed-out
+// user once the timeout elapses.
+async function waitForClerkSession(timeoutMs = 4000): Promise<void> {
+  const start = Date.now()
+  while (!window.Clerk?.session && Date.now() - start < timeoutMs) {
+    await new Promise((resolve) => setTimeout(resolve, 50))
+  }
+}
+
 // The real @sebi/worker backend has no transformer configured (plain JSON),
 // so the client must not use superjson for the wire format either — this is
 // a separate concern from the QueryClient's own dehydrate/hydrate transform
@@ -24,6 +38,7 @@ export const trpcClient = createTRPCClient<AppRouter>({
       // auth middleware can verify it (see apps/worker/src/lib/auth.ts).
       async headers() {
         if (typeof window === 'undefined') return {}
+        await waitForClerkSession()
         const token = await window.Clerk?.session?.getToken()
         return token ? { Authorization: `Bearer ${token}` } : {}
       },

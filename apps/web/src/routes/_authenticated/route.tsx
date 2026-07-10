@@ -4,7 +4,19 @@ import { useEffect } from 'react'
 import { AppSidebar } from '#/components/layout/AppSidebar'
 import { AppTopbar } from '#/components/layout/AppTopbar'
 
-export const Route = createFileRoute('/_authenticated')({ component: AuthenticatedLayout })
+// ssr: false disables server rendering for this route AND every route nested
+// under it (dashboard, checklists, gaps, documents, obligations, etc.) — a
+// real bug, not a hypothetical: the tRPC client's headers() only reads
+// window.Clerk.session.getToken(), which doesn't exist during SSR, so any
+// nested route's loader calling an orgProcedure/protectedProcedure endpoint
+// was unauthenticated on first load and threw "Sign-in required" (caught by
+// Phase 10's new error boundary, which is how this surfaced). Consistent
+// with the already-recorded decision to skip the @clerk/tanstack-react-start
+// SSR integration — this is the client-side-only guard's other half.
+export const Route = createFileRoute('/_authenticated')({
+  ssr: false,
+  component: AuthenticatedLayout,
+})
 
 // Client-side guard only (decision recorded in the plan): Clerk auth state
 // isn't reliably available in beforeLoad during SSR without adopting the

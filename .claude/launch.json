@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "web",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@sebi/web", "dev"],
+      "runtimeExecutable": "bun",
+      "runtimeArgs": ["run", "--filter", "@sebi/web", "dev"],
       "port": 3000
     }
   ]
