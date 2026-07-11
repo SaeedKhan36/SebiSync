@@ -74,14 +74,6 @@ function DocumentDetailPage() {
           </Link>
         </Button>
       )}
-
-      {document.status === 'FAILED' && (
-        <Card>
-          <CardContent className="text-destructive py-4 text-sm">
-            Extraction failed. Check the worker logs for details.
-          </CardContent>
-        </Card>
-      )}
     </div>
   )
 }
