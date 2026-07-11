@@ -69,6 +69,12 @@ model RegulatoryDocument {
   r2ObjectKey    String
   status         DocStatus @default(UPLOADED)
 
+  // Trigger.dev run id for the most recent ingestion attempt (set right
+  // after .trigger() returns) — lets us correlate a stuck/failed document
+  // with its run in the Trigger.dev dashboard, and is reused as the base for
+  // the idempotency key on manual retry.
+  lastIngestionRunId String?
+
   supersedesId String?             @unique
   supersedes   RegulatoryDocument? @relation("Supersession", fields: [supersedesId], references: [id])
   supersededBy RegulatoryDocument? @relation("Supersession")
@@ -105,6 +111,18 @@ enum ObligationStatus {
   SUPERSEDED
 }
 
+// Tracks the async checklist fan-out triggered on publish (propagateObligation,
+// run via a Trigger.dev task) — separate from ObligationStatus, since
+// PUBLISHED and "fan-out finished" are no longer the same moment once
+// propagation is a background job instead of an inline await.
+enum ObligationFanOutStatus {
+  NONE // never published, or fan-out not applicable (still DRAFT)
+  PENDING // publish just happened, task enqueued but not yet running
+  IN_PROGRESS // task picked up the run
+  COMPLETED
+  FAILED // Trigger.dev's own retries exhausted; see fanOutError
+}
+
 model Obligation {
   id         String             @id @default(cuid())
   documentId String
@@ -132,6 +150,10 @@ model Obligation {
   extractionConfidence Float?
   status               ObligationStatus @default(DRAFT)
   reviewedByUserId     String?
+
+  fanOutStatus ObligationFanOutStatus @default(NONE)
+  fanOutError  String?
+  fanOutRunId  String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
