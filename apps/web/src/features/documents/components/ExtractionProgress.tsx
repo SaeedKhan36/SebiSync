@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Loader2 } from 'lucide-react'
+import { Loader2, RotateCcw } from 'lucide-react'
 import type { DocStatus } from '@sebi/schemas'
 import { Card, CardContent, CardHeader, CardTitle } from '#/components/ui/card'
 import { Button } from '#/components/ui/button'
@@ -7,6 +7,7 @@ import { Input } from '#/components/ui/input'
 import { StatusBadge } from '#/components/status/StatusBadge'
 import { docStatusColorMap } from '#/components/status/statusColorMaps'
 import { useStartExtraction } from '#/features/documents/hooks/useStartExtraction'
+import { useRetryExtraction } from '#/features/documents/hooks/useRetryExtraction'
 
 const STATUS_COPY: Partial<Record<DocStatus, string>> = {
   PARSING: 'Parsing document with Docling...',
@@ -25,6 +26,29 @@ interface ExtractionProgressProps {
 export function ExtractionProgress({ documentId, status, hasFile }: ExtractionProgressProps) {
   const [file, setFile] = useState<File | null>(null)
   const startExtraction = useStartExtraction(documentId)
+  const retryExtraction = useRetryExtraction(documentId)
+
+  if (status === 'FAILED') {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-between gap-3 py-6">
+          <div>
+            <p className="text-sm font-medium">Extraction failed</p>
+            <StatusBadge value={status} map={docStatusColorMap} className="mt-1" />
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={retryExtraction.isPending}
+            onClick={() => retryExtraction.mutate({ documentId })}
+          >
+            <RotateCcw className="size-4" />
+            {retryExtraction.isPending ? 'Retrying...' : 'Retry extraction'}
+          </Button>
+        </CardContent>
+      </Card>
+    )
+  }
 
   if (status === 'PARSING' || status === 'EXTRACTING') {
     return (

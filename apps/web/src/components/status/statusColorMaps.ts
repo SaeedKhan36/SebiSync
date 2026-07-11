@@ -109,3 +109,27 @@ export const gapSeverityChartColorMap: Record<GapSeverity, string> = {
   HIGH: '#f97316', // orange-500
   CRITICAL: '#dc2626', // red-600
 }
+
+// Hand-written literal union rather than imported from @sebi/schemas — this
+// enum (Obligation.fanOutStatus) has no Zod schema there since it's a
+// server-derived read value, never a mutation input. Mirrors the Prisma
+// enum ObligationFanOutStatus directly, same reasoning as AuditLogEntry's
+// hand-written type in Phase 7 (simple enough to safely hand-mirror without
+// importing Prisma types into the frontend).
+export type ObligationFanOutStatus = 'NONE' | 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED'
+
+export const obligationFanOutStatusColorMap: Record<ObligationFanOutStatus, StatusEntry> = {
+  NONE: { label: 'Not published', variant: 'secondary' },
+  PENDING: { label: 'Fan-out queued', variant: 'outline', className: 'border-amber-500 text-amber-700' },
+  IN_PROGRESS: {
+    label: 'Propagating…',
+    variant: 'default',
+    className: 'bg-blue-600 hover:bg-blue-600/90',
+  },
+  COMPLETED: {
+    label: 'Propagated',
+    variant: 'default',
+    className: 'bg-emerald-600 hover:bg-emerald-600/90',
+  },
+  FAILED: { label: 'Fan-out failed', variant: 'destructive' },
+}
