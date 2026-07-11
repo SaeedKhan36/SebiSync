@@ -45,8 +45,10 @@ function AuthenticatedLayout() {
       <AppSidebar />
       <div className="flex flex-1 flex-col">
         <AppTopbar />
-        <main className="flex-1 p-6">
-          <Outlet />
+        <main className="flex-1 px-4 py-6 md:px-8">
+          <div className="mx-auto w-full max-w-6xl">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

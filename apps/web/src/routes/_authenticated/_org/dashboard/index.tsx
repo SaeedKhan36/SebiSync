@@ -19,7 +19,10 @@ function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Dashboard" />
+      <PageHeader
+        title="Dashboard"
+        description="Your compliance posture across obligations, checklists and open gaps."
+      />
       <SummaryCards summary={summary} />
       <div className="grid gap-4 md:grid-cols-2">
         <ChecklistStatusChart data={summary.checklistByStatus} />
