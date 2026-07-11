@@ -32,7 +32,7 @@ function OrganizationSettingsPage() {
         title="Organization settings"
         description="Your intermediary profile as provisioned with SEBI, and organisation membership."
       />
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
         <div className="space-y-6">
           <Card className="gap-4">
             <CardHeader>
@@ -85,7 +85,11 @@ function OrganizationSettingsPage() {
           </div>
         </div>
 
-        <div className="[&_.cl-cardBox]:w-full [&_.cl-rootBox]:w-full">
+        {/* Clerk's rootBox/cardBox default to a fixed tall min-height built
+            for its full multi-page nav — override to the content's actual
+            height so this card doesn't leave a huge blank gap under a
+            single short tab like "General". */}
+        <div className="overflow-x-auto rounded-lg border border-border shadow-[0_1px_2px_rgba(28,25,23,0.04)] [&_.cl-card]:!h-auto [&_.cl-card]:!min-h-0 [&_.cl-card]:!shadow-none [&_.cl-cardBox]:!h-auto [&_.cl-cardBox]:!min-h-0 [&_.cl-pageScrollBox]:!h-auto [&_.cl-rootBox]:!h-auto [&_.cl-rootBox]:!min-h-0">
           <OrganizationProfile routing="hash" />
         </div>
       </div>
