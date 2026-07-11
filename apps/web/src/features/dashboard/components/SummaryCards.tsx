@@ -1,5 +1,12 @@
+import {
+  AlertTriangle,
+  BookOpenCheck,
+  CheckCircle2,
+  ListChecks,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import type { DashboardSummaryData } from '#/features/dashboard/hooks/useDashboardSummary'
-import { Card, CardContent, CardHeader, CardTitle } from '#/components/ui/card'
+import { cn } from '#/lib/utils'
 
 interface SummaryCardsProps {
   summary: DashboardSummaryData
@@ -7,6 +14,16 @@ interface SummaryCardsProps {
 
 function sum(entries: { count: number }[]): number {
   return entries.reduce((total, entry) => total + entry.count, 0)
+}
+
+interface StatTile {
+  label: string
+  value: number
+  hint: string
+  icon: LucideIcon
+  // Icon chip tint — the number itself always stays in ink (text wears text
+  // tokens, never the series color).
+  chipClass: string
 }
 
 export function SummaryCards({ summary }: SummaryCardsProps) {
@@ -17,26 +34,64 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
   const publishedObligations =
     summary.obligationsByStatus.find((s) => s.status === 'PUBLISHED')?.count ?? 0
 
-  const cards = [
-    { label: 'Checklist items', value: totalChecklistItems },
-    { label: 'Compliant', value: compliantCount },
-    { label: 'Open gaps', value: openGapsCount },
-    { label: 'Obligations published', value: publishedObligations },
+  const compliantPct =
+    totalChecklistItems > 0 ? Math.round((compliantCount / totalChecklistItems) * 100) : null
+
+  const tiles: StatTile[] = [
+    {
+      label: 'Checklist items',
+      value: totalChecklistItems,
+      hint: 'across your client book',
+      icon: ListChecks,
+      chipClass: 'bg-[#eef2ff] text-[#3730a3]',
+    },
+    {
+      label: 'Compliant',
+      value: compliantCount,
+      hint: compliantPct === null ? 'no items yet' : `${compliantPct}% of all items`,
+      icon: CheckCircle2,
+      chipClass: 'bg-[#f0fdf4] text-[#15803d]',
+    },
+    {
+      label: 'Open gaps',
+      value: openGapsCount,
+      hint: openGapsCount === 0 ? 'nothing needs attention' : 'needs attention',
+      icon: AlertTriangle,
+      chipClass:
+        openGapsCount === 0 ? 'bg-muted text-muted-foreground' : 'bg-[#fef2f2] text-[#b91c1c]',
+    },
+    {
+      label: 'Obligations published',
+      value: publishedObligations,
+      hint: 'live in the register',
+      icon: BookOpenCheck,
+      chipClass: 'bg-[#eef2ff] text-[#3730a3]',
+    },
   ]
 
   return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-      {cards.map((card) => (
-        <Card key={card.label}>
-          <CardHeader>
-            <CardTitle className="text-muted-foreground text-sm font-normal">
-              {card.label}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-semibold">{card.value}</p>
-          </CardContent>
-        </Card>
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      {tiles.map((tile) => (
+        <div
+          key={tile.label}
+          className="rounded-lg border border-border bg-card p-5 shadow-[0_1px_2px_rgba(28,25,23,0.04)]"
+        >
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-[13px] font-medium text-muted-foreground">{tile.label}</p>
+            <span
+              className={cn(
+                'flex size-7 shrink-0 items-center justify-center rounded-md',
+                tile.chipClass,
+              )}
+            >
+              <tile.icon className="size-4" strokeWidth={2} />
+            </span>
+          </div>
+          <p className="mt-2 text-[32px] leading-none font-semibold tracking-tight text-foreground">
+            {tile.value}
+          </p>
+          <p className="mt-2 text-xs text-muted-foreground">{tile.hint}</p>
+        </div>
       ))}
     </div>
   )
