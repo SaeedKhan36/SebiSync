@@ -21,7 +21,7 @@ function GapDetailPage() {
         title={gap.checklistItem.obligation.title}
         breadcrumbs={[{ label: 'Gaps', to: '/gaps' }, { label: gap.checklistItem.obligation.code }]}
       />
-      <div className="max-w-2xl">
+      <div className="max-w-3xl">
         <GapDetailPanel gap={gap} />
       </div>
     </div>

@@ -23,7 +23,7 @@ function ObligationDetailPage() {
         title={obligation.title}
         breadcrumbs={[{ label: 'Obligations', to: '/obligations' }, { label: obligation.code }]}
       />
-      <div className="max-w-2xl">
+      <div className="max-w-3xl">
         <ObligationDetailPanel obligation={obligation} />
       </div>
     </div>

@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { ArrowRight, ExternalLink, FileText } from 'lucide-react'
 import { PageHeader } from '#/components/layout/PageHeader'
 import { Skeleton } from '#/components/ui/skeleton'
 import { Button } from '#/components/ui/button'
-import { Card, CardContent } from '#/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '#/components/ui/card'
+import { DetailField } from '#/components/DetailField'
 import { StatusBadge } from '#/components/status/StatusBadge'
 import { docStatusColorMap } from '#/components/status/statusColorMaps'
 import { formatDate } from '#/lib/format'
@@ -25,37 +27,40 @@ function DocumentDetailPage() {
   if (!document) return <DocumentDetailSkeleton />
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-3xl space-y-6">
       <PageHeader
         title={document.title}
         breadcrumbs={[{ label: 'Documents', to: '/documents' }, { label: document.circularNumber }]}
       />
-      <Card>
-        <CardContent className="grid grid-cols-2 gap-4 py-6 text-sm">
-          <div>
-            <p className="text-muted-foreground text-xs">Circular number</p>
-            <p>{document.circularNumber}</p>
+      <Card className="gap-4">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-[15px] font-semibold">
+            <FileText className="size-4 text-[#3730a3]" />
+            Circular details
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+            <DetailField label="Circular number">
+              <span className="font-mono text-[13px]">{document.circularNumber}</span>
+            </DetailField>
+            <DetailField label="Issued date">{formatDate(document.issuedDate)}</DetailField>
+            <DetailField label="Status">
+              <StatusBadge value={document.status} map={docStatusColorMap} />
+            </DetailField>
+            <DetailField label="Obligations extracted">
+              <span className="font-semibold tabular-nums">{document._count.obligations}</span>
+            </DetailField>
           </div>
-          <div>
-            <p className="text-muted-foreground text-xs">Issued date</p>
-            <p>{formatDate(document.issuedDate)}</p>
-          </div>
-          <div>
-            <p className="text-muted-foreground text-xs">Status</p>
-            <StatusBadge value={document.status} map={docStatusColorMap} />
-          </div>
-          <div>
-            <p className="text-muted-foreground text-xs">Obligations extracted</p>
-            <p>{document._count.obligations}</p>
-          </div>
-          <div className="col-span-2">
+          <div className="border-t border-dashed border-border pt-4">
             <a
               href={document.sourceUrl}
               target="_blank"
               rel="noreferrer"
-              className="text-primary text-xs underline"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-[#3730a3] hover:underline"
             >
-              Source URL
+              View source circular
+              <ExternalLink className="size-3.5" />
             </a>
           </div>
         </CardContent>
@@ -70,7 +75,8 @@ function DocumentDetailPage() {
       {document.status === 'EXTRACTED' && (
         <Button asChild>
           <Link to="/obligations" search={{ documentId: document.id }}>
-            View obligations
+            View extracted obligations
+            <ArrowRight className="size-4" />
           </Link>
         </Button>
       )}
@@ -80,7 +86,7 @@ function DocumentDetailPage() {
 
 function DocumentDetailSkeleton() {
   return (
-    <div className="space-y-6">
+    <div className="max-w-3xl space-y-6">
       <Skeleton className="h-9 w-64" />
       <Skeleton className="h-40" />
     </div>

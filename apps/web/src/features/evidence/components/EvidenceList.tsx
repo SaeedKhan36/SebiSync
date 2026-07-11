@@ -1,3 +1,4 @@
+import { FileCheck2 } from 'lucide-react'
 import type { EvidenceType } from '@sebi/schemas'
 import { Card, CardContent, CardHeader, CardTitle } from '#/components/ui/card'
 import { EmptyState } from '#/components/EmptyState'
@@ -12,9 +13,12 @@ interface EvidenceListProps {
 
 export function EvidenceList({ evidenceRecords, action }: EvidenceListProps) {
   return (
-    <Card>
+    <Card className="gap-4">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-base">Evidence</CardTitle>
+        <CardTitle className="flex items-center gap-2 text-[15px] font-semibold">
+          <FileCheck2 className="size-4 text-[#15803d]" />
+          Evidence
+        </CardTitle>
         {action}
       </CardHeader>
       <CardContent>

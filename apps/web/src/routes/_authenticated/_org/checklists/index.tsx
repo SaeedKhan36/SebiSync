@@ -48,7 +48,10 @@ function ChecklistsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Checklists" />
+      <PageHeader
+        title="Checklists"
+        description="Every obligation assigned to your organisation and clients, with live fulfilment status."
+      />
       <ChecklistTable
         items={items}
         filters={filters}
@@ -68,7 +71,7 @@ function ChecklistsPage() {
                 })
               }
             >
-              <SelectTrigger className="w-44">
+              <SelectTrigger className="w-full bg-card sm:w-44">
                 <SelectValue placeholder="All statuses" />
               </SelectTrigger>
               <SelectContent>
@@ -89,7 +92,7 @@ function ChecklistsPage() {
                 })
               }
             >
-              <SelectTrigger className="w-44">
+              <SelectTrigger className="w-full bg-card sm:w-44">
                 <SelectValue placeholder="All clients" />
               </SelectTrigger>
               <SelectContent>

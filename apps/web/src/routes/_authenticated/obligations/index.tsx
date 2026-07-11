@@ -44,7 +44,10 @@ function ObligationsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Obligations" />
+      <PageHeader
+        title="Obligations"
+        description="The extracted obligation register — every requirement traced back to its source circular."
+      />
       <ObligationTable
         items={items}
         onRowClick={(item) => {
@@ -62,7 +65,7 @@ function ObligationsPage() {
               })
             }
           >
-            <SelectTrigger className="w-44">
+            <SelectTrigger className="w-full bg-card sm:w-44">
               <SelectValue placeholder="All statuses" />
             </SelectTrigger>
             <SelectContent>

@@ -1,7 +1,9 @@
 import { Link } from '@tanstack/react-router'
+import { ArrowRight, CheckCircle2, ShieldAlert } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '#/components/ui/card'
 import { Button } from '#/components/ui/button'
 import { CitationPanel } from '#/components/CitationPanel'
+import { DetailField } from '#/components/DetailField'
 import { GapSeverityBadge } from '#/components/status/GapSeverityBadge'
 import { gapTypeLabelMap } from '#/components/status/statusColorMaps'
 import { formatDate } from '#/lib/format'
@@ -15,39 +17,37 @@ interface GapDetailPanelProps {
 export function GapDetailPanel({ gap }: GapDetailPanelProps) {
   const { checklistItem } = gap
   const { obligation } = checklistItem
+  const resolved = gap.resolvedAt != null
 
   return (
     <div className="space-y-4">
-      <Card>
-        <CardHeader className="flex flex-row items-start justify-between gap-4">
-          <div>
-            <CardTitle>{obligation.title}</CardTitle>
-            <p className="text-muted-foreground text-xs">{obligation.code}</p>
+      <Card className="gap-4">
+        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-1">
+            <CardTitle className="flex items-center gap-2 text-[15px] font-semibold">
+              <ShieldAlert className="size-4 shrink-0 text-[#b91c1c]" />
+              {obligation.title}
+            </CardTitle>
+            <p className="font-mono text-xs text-muted-foreground">{obligation.code}</p>
           </div>
           <GapSeverityBadge severity={gap.severity} />
         </CardHeader>
-        <CardContent className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <p className="text-muted-foreground text-xs">Gap type</p>
-            <p>{gapTypeLabelMap[gap.gapType]}</p>
+        <CardContent className="space-y-5">
+          <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
+            <DetailField label="Gap type">{gapTypeLabelMap[gap.gapType]}</DetailField>
+            <DetailField label="Detected">{formatDate(gap.detectedAt)}</DetailField>
+            {checklistItem.client && (
+              <DetailField label="Client">{checklistItem.client.name}</DetailField>
+            )}
           </div>
-          <div>
-            <p className="text-muted-foreground text-xs">Detected</p>
-            <p>{formatDate(gap.detectedAt)}</p>
-          </div>
-          {checklistItem.client && (
-            <div>
-              <p className="text-muted-foreground text-xs">Client</p>
-              <p>{checklistItem.client.name}</p>
-            </div>
-          )}
-          <div className="col-span-2">
-            <Button asChild variant="outline" size="sm">
+          <div className="border-t border-dashed border-border pt-4">
+            <Button asChild variant="outline" size="sm" className="bg-card">
               <Link
                 to="/checklists/$checklistItemId"
                 params={{ checklistItemId: checklistItem.id }}
               >
                 View checklist item
+                <ArrowRight className="size-3.5" />
               </Link>
             </Button>
           </div>
@@ -60,17 +60,29 @@ export function GapDetailPanel({ gap }: GapDetailPanelProps) {
         citationSection={obligation.citationSection}
       />
 
-      <Card>
+      {/* Resolution card carries the semantic state: green when resolved,
+          amber "action needed" accent while open. */}
+      <Card
+        className={`gap-4 border-l-2 ${resolved ? 'border-l-[#15803d]' : 'border-l-[#b45309]'}`}
+      >
         <CardHeader>
-          <CardTitle className="text-base">Resolution</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-[15px] font-semibold">
+            {resolved ? (
+              <CheckCircle2 className="size-4 text-[#15803d]" />
+            ) : (
+              <ShieldAlert className="size-4 text-[#b45309]" />
+            )}
+            Resolution
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          {gap.resolvedAt ? (
-            <div className="space-y-1 text-sm">
-              <p className="text-muted-foreground text-xs">
-                Resolved {formatDate(gap.resolvedAt)}
+          {resolved ? (
+            <div className="space-y-1.5">
+              <p className="inline-flex items-center gap-1.5 rounded-full bg-[#f0fdf4] px-2.5 py-1 text-[11px] font-medium text-[#15803d]">
+                <CheckCircle2 className="size-3" />
+                Resolved {formatDate(gap.resolvedAt!)}
               </p>
-              <p>{gap.resolutionNote}</p>
+              <p className="text-sm leading-relaxed">{gap.resolutionNote}</p>
             </div>
           ) : (
             <GapResolutionForm gapId={gap.id} checklistItemId={checklistItem.id} />

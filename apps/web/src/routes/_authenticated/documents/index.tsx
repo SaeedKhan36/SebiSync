@@ -50,6 +50,7 @@ function DocumentsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Documents"
+        description="SEBI circulars and master circulars ingested into the extraction pipeline."
         action={
           <DocumentUploadForm
             onCreated={(documentId) => {
@@ -75,7 +76,7 @@ function DocumentsPage() {
               })
             }
           >
-            <SelectTrigger className="w-44">
+            <SelectTrigger className="w-full bg-card sm:w-44">
               <SelectValue placeholder="All statuses" />
             </SelectTrigger>
             <SelectContent>

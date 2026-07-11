@@ -21,21 +21,21 @@ export interface StatusEntry {
 
 export const docStatusColorMap: Record<DocStatus, StatusEntry> = {
   UPLOADED: { label: 'Uploaded', variant: 'secondary' },
-  PARSING: { label: 'Parsing', variant: 'default', className: 'bg-blue-600 hover:bg-blue-600/90' },
+  PARSING: { label: 'Parsing', variant: 'default', className: 'bg-[#4338ca] hover:bg-[#4338ca]/90' },
   EXTRACTING: {
     label: 'Extracting',
     variant: 'default',
-    className: 'bg-blue-600 hover:bg-blue-600/90',
+    className: 'bg-[#4338ca] hover:bg-[#4338ca]/90',
   },
   PARSED: {
     label: 'Parsed',
     variant: 'default',
-    className: 'bg-indigo-600 hover:bg-indigo-600/90',
+    className: 'bg-[#3730a3] hover:bg-[#3730a3]/90',
   },
   EXTRACTED: {
     label: 'Extracted',
     variant: 'default',
-    className: 'bg-emerald-600 hover:bg-emerald-600/90',
+    className: 'bg-[#15803d] hover:bg-[#15803d]/90',
   },
   FAILED: { label: 'Failed', variant: 'destructive' },
 }
@@ -46,7 +46,7 @@ export const obligationStatusColorMap: Record<ObligationStatus, StatusEntry> = {
   PUBLISHED: {
     label: 'Published',
     variant: 'default',
-    className: 'bg-emerald-600 hover:bg-emerald-600/90',
+    className: 'bg-[#15803d] hover:bg-[#15803d]/90',
   },
   SUPERSEDED: { label: 'Superseded', variant: 'secondary' },
 }
@@ -56,12 +56,12 @@ export const checklistStatusColorMap: Record<ChecklistStatus, StatusEntry> = {
   IN_PROGRESS: {
     label: 'In Progress',
     variant: 'default',
-    className: 'bg-blue-600 hover:bg-blue-600/90',
+    className: 'bg-[#4338ca] hover:bg-[#4338ca]/90',
   },
   COMPLIANT: {
     label: 'Compliant',
     variant: 'default',
-    className: 'bg-emerald-600 hover:bg-emerald-600/90',
+    className: 'bg-[#15803d] hover:bg-[#15803d]/90',
   },
   GAP: { label: 'Gap', variant: 'destructive' },
   NOT_APPLICABLE: { label: 'N/A', variant: 'outline' },
@@ -131,12 +131,12 @@ export const obligationFanOutStatusColorMap: Record<ObligationFanOutStatus, Stat
   IN_PROGRESS: {
     label: 'Propagating…',
     variant: 'default',
-    className: 'bg-blue-600 hover:bg-blue-600/90',
+    className: 'bg-[#4338ca] hover:bg-[#4338ca]/90',
   },
   COMPLETED: {
     label: 'Propagated',
     variant: 'default',
-    className: 'bg-emerald-600 hover:bg-emerald-600/90',
+    className: 'bg-[#15803d] hover:bg-[#15803d]/90',
   },
   FAILED: { label: 'Fan-out failed', variant: 'destructive' },
 }

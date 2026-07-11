@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import { ShieldAlert } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '#/components/ui/card'
 import { GapSeverityBadge } from '#/components/status/GapSeverityBadge'
 import { gapTypeLabelMap } from '#/components/status/statusColorMaps'
@@ -15,27 +16,34 @@ interface GapsSectionProps {
 // the plain <a> placeholder used while writing Phase 7.
 export function GapsSection({ gaps }: GapsSectionProps) {
   return (
-    <Card>
+    <Card className="gap-4">
       <CardHeader>
-        <CardTitle className="text-base">Gaps</CardTitle>
+        <CardTitle className="flex items-center gap-2 text-[15px] font-semibold">
+          <ShieldAlert className="size-4 text-[#b91c1c]" />
+          Gaps
+        </CardTitle>
       </CardHeader>
       <CardContent>
         {gaps.length === 0 ? (
           <EmptyState title="No gaps" description="No compliance gaps detected for this item." />
         ) : (
-          <ul className="divide-y">
+          <ul className="divide-y divide-border">
             {gaps.map((gap) => (
-              <li key={gap.id} className="py-3 first:pt-0 last:pb-0">
+              <li key={gap.id}>
                 <Link
                   to="/gaps/$gapId"
                   params={{ gapId: gap.id }}
-                  className="flex items-center justify-between gap-3"
+                  className="group -mx-2 flex items-center justify-between gap-3 rounded-md px-2 py-3 transition-colors hover:bg-accent/60"
                 >
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium">{gapTypeLabelMap[gap.gapType]}</p>
-                    <p className="text-muted-foreground text-xs">
+                  <div className="space-y-0.5">
+                    <p className="text-sm font-medium group-hover:text-[#3730a3]">
+                      {gapTypeLabelMap[gap.gapType]}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
                       Detected {formatDate(gap.detectedAt)}
-                      {gap.resolvedAt ? ` · Resolved ${formatDate(gap.resolvedAt)}` : ' · Unresolved'}
+                      {gap.resolvedAt
+                        ? ` · Resolved ${formatDate(gap.resolvedAt)}`
+                        : ' · Unresolved'}
                     </p>
                   </div>
                   <GapSeverityBadge severity={gap.severity} />

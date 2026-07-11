@@ -24,7 +24,7 @@ interface PageHeaderProps {
 // landing page's identity.
 export function PageHeader({ title, description, breadcrumbs, action }: PageHeaderProps) {
   return (
-    <div className="flex items-start justify-between gap-4 border-b border-border pb-5">
+    <div className="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-start sm:justify-between">
       <div className="space-y-1">
         {breadcrumbs && breadcrumbs.length > 0 && (
           <Breadcrumb>

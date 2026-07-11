@@ -53,7 +53,10 @@ function GapsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Gaps" />
+      <PageHeader
+        title="Gaps"
+        description="Detected compliance gaps ranked by severity — resolve them before they become findings."
+      />
       <GapTable
         items={items}
         onRowClick={(item) => {
@@ -72,7 +75,7 @@ function GapsPage() {
                 })
               }
             >
-              <SelectTrigger className="w-44">
+              <SelectTrigger className="w-full bg-card sm:w-44">
                 <SelectValue placeholder="All severities" />
               </SelectTrigger>
               <SelectContent>
@@ -96,7 +99,7 @@ function GapsPage() {
                 })
               }
             >
-              <SelectTrigger className="w-44">
+              <SelectTrigger className="w-full bg-card sm:w-44">
                 <SelectValue placeholder="All statuses" />
               </SelectTrigger>
               <SelectContent>

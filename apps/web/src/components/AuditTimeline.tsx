@@ -1,6 +1,7 @@
 import {
   CheckCircle2,
   FileUp,
+  Fingerprint,
   ListChecks,
   ShieldAlert,
   ShieldCheck,
@@ -9,6 +10,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '#/components/ui/card'
 import { EmptyState } from '#/components/EmptyState'
 import { formatDate } from '#/lib/format'
+import { cn } from '#/lib/utils'
 
 // Hand-written rather than derived from inferRouterOutputs<AppRouter> (the
 // usual output-typing rule) — naming that specific slice as a type alias
@@ -46,6 +48,13 @@ const ACTION_LABELS: Record<string, string> = {
   TRIGGER_EVENT_RECEIVED: 'Trigger event received',
 }
 
+// Marker color mirrors the semantic status colors used across badges and
+// charts: detection = red, resolution = green, everything else = indigo.
+const ACTION_DOT: Record<string, string> = {
+  GAP_DETECTED: 'bg-[#b91c1c]',
+  GAP_RESOLVED: 'bg-[#15803d]',
+}
+
 function actorLabel(entry: AuditLogEntry): string {
   if (entry.actorType === 'SYSTEM_AGENT') return 'System'
   if (entry.actorType === 'SCHEDULED_JOB') return 'Scheduled job'
@@ -57,30 +66,50 @@ interface AuditTimelineProps {
 }
 
 // Generic — takes entries as a prop so it can be reused wherever audit
-// history needs to render, not just the checklist detail page.
+// history needs to render, not just the checklist detail page. Rendered as
+// a railed timeline, matching the audit-trail identity from the landing page.
 export function AuditTimeline({ entries }: AuditTimelineProps) {
   return (
-    <Card>
+    <Card className="gap-4">
       <CardHeader>
-        <CardTitle className="text-base">Audit trail</CardTitle>
+        <CardTitle className="flex items-center gap-2 text-[15px] font-semibold">
+          <Fingerprint className="size-4 text-[#3730a3]" />
+          Audit trail
+        </CardTitle>
       </CardHeader>
       <CardContent>
         {entries.length === 0 ? (
           <EmptyState title="No audit history" description="No recorded activity yet." />
         ) : (
-          <ul className="space-y-4">
-            {entries.map((entry) => {
+          <ul>
+            {entries.map((entry, i) => {
               const Icon = ACTION_ICONS[entry.action] ?? ListChecks
               return (
-                <li key={entry.id} className="flex gap-3">
-                  <Icon className="text-muted-foreground mt-0.5 size-4 shrink-0" />
-                  <div className="space-y-0.5">
-                    <p className="text-sm font-medium">
-                      {ACTION_LABELS[entry.action] ?? entry.action}
-                    </p>
-                    <p className="text-muted-foreground text-xs">
-                      {actorLabel(entry)} · {formatDate(entry.createdAt)}
-                    </p>
+                <li key={entry.id} className="relative flex gap-3.5 pb-5 last:pb-0">
+                  {i < entries.length - 1 && (
+                    <span
+                      aria-hidden
+                      className="absolute top-4 left-[4.5px] h-full w-px bg-border"
+                    />
+                  )}
+                  <span
+                    aria-hidden
+                    className={cn(
+                      'relative z-10 mt-1.5 size-2.5 shrink-0 rounded-full',
+                      ACTION_DOT[entry.action] ?? 'bg-[#4338ca]',
+                    )}
+                  />
+                  <div className="min-w-0 flex-1 space-y-0.5">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <p className="flex items-center gap-1.5 text-sm font-medium">
+                        <Icon className="size-3.5 text-muted-foreground" />
+                        {ACTION_LABELS[entry.action] ?? entry.action}
+                      </p>
+                      <p className="shrink-0 text-xs text-muted-foreground tabular-nums">
+                        {formatDate(entry.createdAt)}
+                      </p>
+                    </div>
+                    <p className="truncate text-xs text-muted-foreground">{actorLabel(entry)}</p>
                   </div>
                 </li>
               )
