@@ -14,15 +14,17 @@ export interface PageHeaderCrumb {
 
 interface PageHeaderProps {
   title: string
+  description?: string
   breadcrumbs?: PageHeaderCrumb[]
   action?: React.ReactNode
 }
 
 // Generic — no domain knowledge. Every route composes this at the top of
-// its page content.
-export function PageHeader({ title, breadcrumbs, action }: PageHeaderProps) {
+// its page content. Titles are set in the editorial serif to match the
+// landing page's identity.
+export function PageHeader({ title, description, breadcrumbs, action }: PageHeaderProps) {
   return (
-    <div className="flex items-start justify-between gap-4 border-b pb-4">
+    <div className="flex items-start justify-between gap-4 border-b border-border pb-5">
       <div className="space-y-1">
         {breadcrumbs && breadcrumbs.length > 0 && (
           <Breadcrumb>
@@ -42,7 +44,12 @@ export function PageHeader({ title, breadcrumbs, action }: PageHeaderProps) {
             </BreadcrumbList>
           </Breadcrumb>
         )}
-        <h1 className="text-2xl font-semibold">{title}</h1>
+        <h1 className="font-serif text-[28px] leading-tight font-medium tracking-[-0.01em]">
+          {title}
+        </h1>
+        {description && (
+          <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
+        )}
       </div>
       {action}
     </div>

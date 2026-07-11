@@ -17,23 +17,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 
-export const Route = createFileRoute('/')({
-  head: () => ({
-    links: [
-      { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-      {
-        rel: 'preconnect',
-        href: 'https://fonts.gstatic.com',
-        crossOrigin: 'anonymous',
-      },
-      {
-        rel: 'stylesheet',
-        href: 'https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600&display=swap',
-      },
-    ],
-  }),
-  component: Landing,
-})
+export const Route = createFileRoute('/')({ component: Landing })
 
 const serif = { fontFamily: "'Newsreader', Georgia, 'Times New Roman', serif" }
 

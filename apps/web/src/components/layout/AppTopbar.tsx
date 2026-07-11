@@ -3,7 +3,7 @@ import { Menu } from 'lucide-react'
 import { OrganizationSwitcher, UserButton } from '@clerk/clerk-react'
 import { Button } from '#/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '#/components/ui/sheet'
-import { NavLinks } from '#/components/layout/AppSidebar'
+import { Brand, NavLinks } from '#/components/layout/AppSidebar'
 
 // Permanent home for OrganizationSwitcher/UserButton — moved here from the
 // old dashboard page, which owned them ad hoc before this shell existed.
@@ -14,7 +14,7 @@ export function AppTopbar() {
   const [navOpen, setNavOpen] = useState(false)
 
   return (
-    <header className="flex h-14 items-center justify-between border-b px-4 md:px-6">
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background/85 px-4 backdrop-blur-sm md:px-8">
       <Sheet open={navOpen} onOpenChange={setNavOpen}>
         <Button
           variant="ghost"
@@ -25,20 +25,23 @@ export function AppTopbar() {
         >
           <Menu className="size-5" />
         </Button>
-        <SheetContent side="left" className="w-64 p-0">
-          <SheetHeader className="border-b px-4 py-0">
-            <SheetTitle className="flex h-14 items-center font-semibold">RegLens-AI</SheetTitle>
+        <SheetContent side="left" className="w-64 bg-sidebar p-0">
+          <SheetHeader className="border-b border-sidebar-border px-4 py-0">
+            <SheetTitle className="flex h-14 items-center">
+              <Brand />
+            </SheetTitle>
           </SheetHeader>
           <NavLinks onNavigate={() => setNavOpen(false)} />
         </SheetContent>
       </Sheet>
       <div className="hidden md:block" />
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         <OrganizationSwitcher
           afterSelectOrganizationUrl="/dashboard"
           afterCreateOrganizationUrl="/dashboard"
           hidePersonal
         />
+        <span aria-hidden className="h-5 w-px bg-border" />
         <UserButton />
       </div>
     </header>

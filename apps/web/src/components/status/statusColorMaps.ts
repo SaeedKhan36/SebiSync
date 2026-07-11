@@ -95,19 +95,26 @@ export const evidenceTypeLabelMap: Record<EvidenceType, string> = {
 // these hex values are chosen to match the same semantic colors used by the
 // StatusBadge classNames above, so charts and badges stay visually
 // consistent by construction rather than by coincidence.
+// Palette validated with the dataviz six-checks validator on the white card
+// surface (lightness band, chroma floor, CVD adjacent-pair ΔE, 3:1 contrast).
+// The two neutrals (PENDING/N-A) carry "no state yet" semantics and get their
+// relief from the labeled legend + 2px slice spacers, per the status-color rule.
 export const checklistStatusChartColorMap: Record<ChecklistStatus, string> = {
-  PENDING: '#94a3b8', // slate-400, matches secondary
-  IN_PROGRESS: '#2563eb', // blue-600
-  COMPLIANT: '#059669', // emerald-600
-  GAP: '#dc2626', // red-600, matches destructive
-  NOT_APPLICABLE: '#cbd5e1', // slate-300, matches outline/muted
+  PENDING: '#b45309', // amber-700 — waiting, needs action
+  IN_PROGRESS: '#4338ca', // indigo-700 — brand working color
+  COMPLIANT: '#15803d', // green-700 — good
+  GAP: '#b91c1c', // red-700 — matches destructive
+  NOT_APPLICABLE: '#d6d3d1', // stone-300 — deliberately recessive neutral
 }
 
+// Severity is ordered magnitude, so the chart uses a single-hue red ordinal
+// ramp (validated: monotone lightness, ≥0.06 ΔL steps, light end ≥2:1) —
+// identity comes from the labeled x-axis, color carries only "how bad".
 export const gapSeverityChartColorMap: Record<GapSeverity, string> = {
-  LOW: '#94a3b8', // slate-400
-  MEDIUM: '#f59e0b', // amber-500
-  HIGH: '#f97316', // orange-500
-  CRITICAL: '#dc2626', // red-600
+  LOW: '#f87171', // red-400
+  MEDIUM: '#dc2626', // red-600
+  HIGH: '#b91c1c', // red-700
+  CRITICAL: '#7f1d1d', // red-900
 }
 
 // Hand-written literal union rather than imported from @sebi/schemas — this
