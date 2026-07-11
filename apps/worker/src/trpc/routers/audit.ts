@@ -5,7 +5,7 @@ import { router, orgProcedure } from "../trpc";
 export const auditRouter = router({
   // Scoped to a single checklist item for now (the only current UI consumer:
   // the checklist detail page's audit timeline). Ownership-checked the same
-  // way as checklist.getDetail/gap.get.
+
   listByEntity: orgProcedure
     .input(z.object({ checklistItemId: z.string() }))
     .query(async ({ ctx, input }) => {
