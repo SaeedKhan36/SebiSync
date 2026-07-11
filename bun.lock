@@ -4,6 +4,7 @@
     "": {
       "name": "sebi-agentic-compliance",
       "devDependencies": {
+        "@prisma/client": "^6.2.0",
         "turbo": "^2.3.0",
         "typescript": "^5.7.0",
         "zod": "^4.4.3",
@@ -122,8 +123,8 @@
   "trustedDependencies": [
     "esbuild",
     "lightningcss",
-    "prisma",
     "@prisma/client",
+    "prisma",
   ],
   "packages": {
     "@acemir/cssom": ["@acemir/cssom@0.9.31", "", {}, "sha512-ZnR3GSaH+/vJ0YlHau21FjfLYjMpYVIzTD8M8vIEQvIGxeOXyXdzCI140rrCY862p/C/BbzWsjc1dgnM9mkoTA=="],
