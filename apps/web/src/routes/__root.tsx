@@ -37,10 +37,14 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'RegLens-AI',
+        title: 'SEBISync',
       },
     ],
     links: [
+      {
+        rel: 'icon',
+        href: 'data:,',
+      },
       {
         rel: 'stylesheet',
         href: appCss,

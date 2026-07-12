@@ -53,7 +53,7 @@ function Nav() {
             <ScanLine className="h-4.5 w-4.5" strokeWidth={2.2} />
           </span>
           <span className="text-[17px] font-semibold tracking-tight">
-            RegLens<span className="text-[#3730a3]">·AI</span>
+            SEBISync<span className="text-[#3730a3]">·AI</span>
           </span>
         </a>
 
@@ -145,7 +145,7 @@ function Hero() {
             </h1>
 
             <p className="mt-6 max-w-lg text-[17px] leading-relaxed text-[#57534e]">
-              RegLens ingests SEBI circulars and master circulars, extracts every
+              SEBISync ingests SEBI circulars and master circulars, extracts every
               obligation with a verified citation back to the source paragraph,
               and propagates each one into live compliance checklists for the
               intermediaries it applies to — before gaps become findings.
@@ -305,7 +305,7 @@ function ProblemSection() {
           className="mx-auto mt-14 max-w-2xl text-center text-[22px] leading-snug text-[#44403c]"
           style={serif}
         >
-          RegLens closes the gap by making the translation step{' '}
+          SEBISync closes the gap by making the translation step{' '}
           <em className="text-[#3730a3]">automatic, cited, and reviewable</em> —
           and the tracking step continuous.
         </p>
@@ -536,9 +536,8 @@ function AuditSection() {
                   <span className="absolute top-4 left-[5px] h-full w-px bg-[#e7e2da]" />
                 )}
                 <span
-                  className={`relative z-10 mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${
-                    i === arr.length - 1 ? 'bg-[#15803d]' : 'bg-[#3730a3]'
-                  }`}
+                  className={`relative z-10 mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${i === arr.length - 1 ? 'bg-[#15803d]' : 'bg-[#3730a3]'
+                    }`}
                 />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline justify-between gap-3">
@@ -611,7 +610,7 @@ function Footer() {
           <span className="flex h-6 w-6 items-center justify-center rounded bg-[#3730a3] text-white">
             <ScanLine className="h-3.5 w-3.5" />
           </span>
-          <span className="font-medium text-[#d6d3d1]">RegLens·AI</span>
+          <span className="font-medium text-[#d6d3d1]">SEBISync.Ai</span>
           <span>— agentic compliance for SEBI intermediaries</span>
         </div>
         <p>SEBI Securities Market TechSprint · Problem Statement 2</p>

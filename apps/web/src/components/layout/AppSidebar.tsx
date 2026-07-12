@@ -90,7 +90,7 @@ export function Brand() {
         <ScanLine className="size-4" strokeWidth={2.2} />
       </span>
       <span className="text-[15px] font-semibold tracking-tight text-foreground">
-        RegLens<span className="text-[#3730a3]">·AI</span>
+        SEBISync<span className="text-[#3730a3]">·AI</span>
       </span>
     </div>
   )
