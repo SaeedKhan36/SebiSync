@@ -99,7 +99,7 @@ export function Brand() {
 // Desktop only (Phase 10: hidden below md, replaced by AppTopbar's Sheet nav).
 export function AppSidebar() {
   return (
-    <aside className="bg-sidebar text-sidebar-foreground hidden w-60 shrink-0 flex-col border-r border-sidebar-border md:flex">
+    <aside className="bg-sidebar text-sidebar-foreground sticky top-0 hidden h-screen w-60 shrink-0 flex-col overflow-y-auto border-r border-sidebar-border md:flex">
       <div className="flex h-14 items-center border-b border-sidebar-border px-4">
         <Brand />
       </div>
