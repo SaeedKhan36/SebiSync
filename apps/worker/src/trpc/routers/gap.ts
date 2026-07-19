@@ -4,6 +4,7 @@ import { gapSeveritySchema, resolveGapSchema } from "@sebi/schemas";
 import { router, orgProcedure } from "../trpc";
 import { writeAuditLog } from "../../lib/audit";
 
+
 export const gapRouter = router({
   list: orgProcedure
     .input(
