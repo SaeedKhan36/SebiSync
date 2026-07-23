@@ -20,6 +20,7 @@ function makeCtx(overrides: Partial<Record<string, unknown>> = {}) {
 
 describe("clientRouter", () => {
   beforeEach(() => {
+    vi.restoreAllMocks();
     writeAuditLog.mockReset().mockResolvedValue({});
     vi.spyOn(prisma.client, "create").mockImplementation(() => Promise.resolve({} as never));
     vi.spyOn(prisma.client, "update").mockImplementation(() => Promise.resolve({} as never));
