@@ -6,3 +6,4 @@ export * from "./gap";
 export * from "./document";
 export * from "./dashboard";
 export * from "./intermediary";
+export * from "./client";

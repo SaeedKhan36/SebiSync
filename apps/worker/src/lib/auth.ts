@@ -5,7 +5,7 @@ import { createClerkClient, type ClerkClient } from "@clerk/backend";
 // before server.ts's own dotenv.config() calls run. Reading process.env at
 // call time (not module load time) avoids capturing empty keys.
 let clerkClient: ClerkClient | undefined;
-function getClerkClient(): ClerkClient {
+export function getClerkClient(): ClerkClient {
   if (!clerkClient) {
     clerkClient = createClerkClient({
       secretKey: process.env.CLERK_SECRET_KEY ?? "",

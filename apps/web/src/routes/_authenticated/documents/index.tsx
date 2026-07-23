@@ -54,7 +54,7 @@ function DocumentsPage() {
         action={
           <DocumentUploadForm
             onCreated={(documentId) => {
-              window.location.href = `/documents/${documentId}`
+              void navigate({ to: '/documents/$documentId', params: { documentId } })
             }}
           />
         }
@@ -62,7 +62,7 @@ function DocumentsPage() {
       <DocumentTable
         items={items}
         onRowClick={(item) => {
-          window.location.href = `/documents/${item.id}`
+          void navigate({ to: '/documents/$documentId', params: { documentId: item.id } })
         }}
         toolbar={
           <Select

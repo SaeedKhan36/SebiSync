@@ -60,7 +60,7 @@ function GapsPage() {
       <GapTable
         items={items}
         onRowClick={(item) => {
-          window.location.href = `/gaps/${item.id}`
+          void navigate({ to: '/gaps/$gapId', params: { gapId: item.id } })
         }}
         toolbar={
           <>

@@ -4,6 +4,7 @@ import { OrganizationSwitcher, UserButton } from '@clerk/clerk-react'
 import { Button } from '#/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '#/components/ui/sheet'
 import { Brand, NavLinks } from '#/components/layout/AppSidebar'
+import { ThemeToggle } from '#/components/layout/ThemeToggle'
 
 // Permanent home for OrganizationSwitcher/UserButton — moved here from the
 // old dashboard page, which owned them ad hoc before this shell existed.
@@ -36,6 +37,7 @@ export function AppTopbar() {
       </Sheet>
       <div className="hidden md:block" />
       <div className="flex items-center gap-3">
+        <ThemeToggle />
         <OrganizationSwitcher
           afterSelectOrganizationUrl="/dashboard"
           afterCreateOrganizationUrl="/dashboard"

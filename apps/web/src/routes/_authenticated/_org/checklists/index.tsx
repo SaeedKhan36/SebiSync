@@ -56,7 +56,7 @@ function ChecklistsPage() {
         items={items}
         filters={filters}
         onRowClick={(item) => {
-          window.location.href = `/checklists/${item.id}`
+          void navigate({ to: '/checklists/$checklistItemId', params: { checklistItemId: item.id } })
         }}
         toolbar={
           <>

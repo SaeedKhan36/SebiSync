@@ -24,6 +24,7 @@ import { Route as AuthenticatedDocumentsDocumentIdRouteImport } from './routes/_
 import { Route as AuthenticatedOrgOnboardingIndexRouteImport } from './routes/_authenticated/_org/onboarding/index'
 import { Route as AuthenticatedOrgGapsIndexRouteImport } from './routes/_authenticated/_org/gaps/index'
 import { Route as AuthenticatedOrgDashboardIndexRouteImport } from './routes/_authenticated/_org/dashboard/index'
+import { Route as AuthenticatedOrgClientsIndexRouteImport } from './routes/_authenticated/_org/clients/index'
 import { Route as AuthenticatedOrgChecklistsIndexRouteImport } from './routes/_authenticated/_org/checklists/index'
 import { Route as AuthenticatedOrgSettingsOrganizationRouteImport } from './routes/_authenticated/_org/settings/organization'
 import { Route as AuthenticatedOrgGapsGapIdRouteImport } from './routes/_authenticated/_org/gaps/$gapId'
@@ -110,6 +111,12 @@ const AuthenticatedOrgDashboardIndexRoute =
     path: '/dashboard/',
     getParentRoute: () => AuthenticatedOrgRouteRoute,
   } as any)
+const AuthenticatedOrgClientsIndexRoute =
+  AuthenticatedOrgClientsIndexRouteImport.update({
+    id: '/clients/',
+    path: '/clients/',
+    getParentRoute: () => AuthenticatedOrgRouteRoute,
+  } as any)
 const AuthenticatedOrgChecklistsIndexRoute =
   AuthenticatedOrgChecklistsIndexRouteImport.update({
     id: '/checklists/',
@@ -150,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/gaps/$gapId': typeof AuthenticatedOrgGapsGapIdRoute
   '/settings/organization': typeof AuthenticatedOrgSettingsOrganizationRoute
   '/checklists/': typeof AuthenticatedOrgChecklistsIndexRoute
+  '/clients/': typeof AuthenticatedOrgClientsIndexRoute
   '/dashboard/': typeof AuthenticatedOrgDashboardIndexRoute
   '/gaps/': typeof AuthenticatedOrgGapsIndexRoute
   '/onboarding/': typeof AuthenticatedOrgOnboardingIndexRoute
@@ -169,6 +177,7 @@ export interface FileRoutesByTo {
   '/gaps/$gapId': typeof AuthenticatedOrgGapsGapIdRoute
   '/settings/organization': typeof AuthenticatedOrgSettingsOrganizationRoute
   '/checklists': typeof AuthenticatedOrgChecklistsIndexRoute
+  '/clients': typeof AuthenticatedOrgClientsIndexRoute
   '/dashboard': typeof AuthenticatedOrgDashboardIndexRoute
   '/gaps': typeof AuthenticatedOrgGapsIndexRoute
   '/onboarding': typeof AuthenticatedOrgOnboardingIndexRoute
@@ -191,6 +200,7 @@ export interface FileRoutesById {
   '/_authenticated/_org/gaps/$gapId': typeof AuthenticatedOrgGapsGapIdRoute
   '/_authenticated/_org/settings/organization': typeof AuthenticatedOrgSettingsOrganizationRoute
   '/_authenticated/_org/checklists/': typeof AuthenticatedOrgChecklistsIndexRoute
+  '/_authenticated/_org/clients/': typeof AuthenticatedOrgClientsIndexRoute
   '/_authenticated/_org/dashboard/': typeof AuthenticatedOrgDashboardIndexRoute
   '/_authenticated/_org/gaps/': typeof AuthenticatedOrgGapsIndexRoute
   '/_authenticated/_org/onboarding/': typeof AuthenticatedOrgOnboardingIndexRoute
@@ -212,6 +222,7 @@ export interface FileRouteTypes {
     | '/gaps/$gapId'
     | '/settings/organization'
     | '/checklists/'
+    | '/clients/'
     | '/dashboard/'
     | '/gaps/'
     | '/onboarding/'
@@ -231,6 +242,7 @@ export interface FileRouteTypes {
     | '/gaps/$gapId'
     | '/settings/organization'
     | '/checklists'
+    | '/clients'
     | '/dashboard'
     | '/gaps'
     | '/onboarding'
@@ -252,6 +264,7 @@ export interface FileRouteTypes {
     | '/_authenticated/_org/gaps/$gapId'
     | '/_authenticated/_org/settings/organization'
     | '/_authenticated/_org/checklists/'
+    | '/_authenticated/_org/clients/'
     | '/_authenticated/_org/dashboard/'
     | '/_authenticated/_org/gaps/'
     | '/_authenticated/_org/onboarding/'
@@ -373,6 +386,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrgDashboardIndexRouteImport
       parentRoute: typeof AuthenticatedOrgRouteRoute
     }
+    '/_authenticated/_org/clients/': {
+      id: '/_authenticated/_org/clients/'
+      path: '/clients'
+      fullPath: '/clients/'
+      preLoaderRoute: typeof AuthenticatedOrgClientsIndexRouteImport
+      parentRoute: typeof AuthenticatedOrgRouteRoute
+    }
     '/_authenticated/_org/checklists/': {
       id: '/_authenticated/_org/checklists/'
       path: '/checklists'
@@ -409,6 +429,7 @@ interface AuthenticatedOrgRouteRouteChildren {
   AuthenticatedOrgGapsGapIdRoute: typeof AuthenticatedOrgGapsGapIdRoute
   AuthenticatedOrgSettingsOrganizationRoute: typeof AuthenticatedOrgSettingsOrganizationRoute
   AuthenticatedOrgChecklistsIndexRoute: typeof AuthenticatedOrgChecklistsIndexRoute
+  AuthenticatedOrgClientsIndexRoute: typeof AuthenticatedOrgClientsIndexRoute
   AuthenticatedOrgDashboardIndexRoute: typeof AuthenticatedOrgDashboardIndexRoute
   AuthenticatedOrgGapsIndexRoute: typeof AuthenticatedOrgGapsIndexRoute
   AuthenticatedOrgOnboardingIndexRoute: typeof AuthenticatedOrgOnboardingIndexRoute
@@ -421,6 +442,7 @@ const AuthenticatedOrgRouteRouteChildren: AuthenticatedOrgRouteRouteChildren = {
   AuthenticatedOrgSettingsOrganizationRoute:
     AuthenticatedOrgSettingsOrganizationRoute,
   AuthenticatedOrgChecklistsIndexRoute: AuthenticatedOrgChecklistsIndexRoute,
+  AuthenticatedOrgClientsIndexRoute: AuthenticatedOrgClientsIndexRoute,
   AuthenticatedOrgDashboardIndexRoute: AuthenticatedOrgDashboardIndexRoute,
   AuthenticatedOrgGapsIndexRoute: AuthenticatedOrgGapsIndexRoute,
   AuthenticatedOrgOnboardingIndexRoute: AuthenticatedOrgOnboardingIndexRoute,

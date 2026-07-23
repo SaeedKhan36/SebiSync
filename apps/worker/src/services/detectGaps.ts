@@ -1,5 +1,6 @@
 import { prisma } from "@sebi/db";
 import { writeAuditLog } from "../lib/audit";
+import { notifyGap } from "./notifyGap";
 
 const GRACE_PERIOD_DAYS = 30;
 
@@ -12,7 +13,12 @@ export async function detectGaps(): Promise<{ created: number }> {
   const now = new Date();
   const items = await prisma.complianceChecklistItem.findMany({
     where: { status: { notIn: ["COMPLIANT", "NOT_APPLICABLE"] } },
-    include: { evidenceRecords: { orderBy: { submittedAt: "desc" }, take: 1 } },
+    include: {
+      evidenceRecords: { orderBy: { submittedAt: "desc" }, take: 1 },
+      obligation: { select: { code: true, title: true } },
+      client: { select: { name: true } },
+      intermediary: { select: { clerkOrgId: true } },
+    },
   });
 
   let created = 0;
@@ -64,6 +70,37 @@ export async function detectGaps(): Promise<{ created: number }> {
       gapId: gap.id,
     });
     created += 1;
+
+    // A notification failure must never abort detection — the gap itself is
+    // already recorded; notifiedAt stays null so the send can be retried.
+    try {
+      if (!item.intermediary.clerkOrgId) continue;
+      const recipients = await notifyGap({
+        gap,
+        obligation: item.obligation,
+        clientName: item.client?.name ?? null,
+        dueDate: item.dueDate,
+        clerkOrgId: item.intermediary.clerkOrgId,
+      });
+      if (recipients > 0) {
+        await prisma.complianceGap.update({
+          where: { id: gap.id },
+          data: { notifiedAt: new Date() },
+        });
+        await writeAuditLog({
+          intermediaryId: item.intermediaryId,
+          entityType: "ComplianceGap",
+          entityId: gap.id,
+          action: "NOTIFIED",
+          actorType: "SCHEDULED_JOB",
+          metadata: { channel: "email", recipients },
+          checklistItemId: item.id,
+          gapId: gap.id,
+        });
+      }
+    } catch (error) {
+      console.error(`[detectGaps] notification failed for gap ${gap.id}:`, error);
+    }
   }
 
   return { created };

@@ -51,7 +51,7 @@ function ObligationsPage() {
       <ObligationTable
         items={items}
         onRowClick={(item) => {
-          window.location.href = `/obligations/${item.id}`
+          void navigate({ to: '/obligations/$obligationId', params: { obligationId: item.id } })
         }}
         toolbar={
           <Select

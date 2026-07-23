@@ -5,7 +5,7 @@ interface WriteAuditLogInput {
   // Optional: unset for global regulatory events (document ingestion,
   // obligation extraction/publish) that aren't scoped to a tenant.
   intermediaryId?: string;
-  entityType: "RegulatoryDocument" | "Obligation" | "ChecklistItem" | "EvidenceRecord" | "ComplianceGap" | "Intermediary";
+  entityType: "RegulatoryDocument" | "Obligation" | "ChecklistItem" | "EvidenceRecord" | "ComplianceGap" | "Intermediary" | "Client";
   entityId: string;
   action: string;
   actorType: "SYSTEM_AGENT" | "USER" | "SCHEDULED_JOB";

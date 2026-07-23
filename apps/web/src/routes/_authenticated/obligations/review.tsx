@@ -18,6 +18,7 @@ export const Route = createFileRoute('/_authenticated/obligations/review')({
 })
 
 function ObligationReviewPage() {
+  const navigate = Route.useNavigate()
   const { data: items } = useObligationList({ status: 'DRAFT' })
 
   return (
@@ -26,7 +27,7 @@ function ObligationReviewPage() {
       <ObligationTable
         items={items}
         onRowClick={(item) => {
-          window.location.href = `/obligations/${item.id}`
+          void navigate({ to: '/obligations/$obligationId', params: { obligationId: item.id } })
         }}
       />
     </div>

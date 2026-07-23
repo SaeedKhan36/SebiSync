@@ -6,6 +6,12 @@
       "runtimeExecutable": "bun",
       "runtimeArgs": ["run", "--filter", "@sebi/web", "dev"],
       "port": 3000
+    },
+    {
+      "name": "worker",
+      "runtimeExecutable": "bun",
+      "runtimeArgs": ["run", "--filter", "@sebi/worker", "dev"],
+      "port": 8787
     }
   ]
 }

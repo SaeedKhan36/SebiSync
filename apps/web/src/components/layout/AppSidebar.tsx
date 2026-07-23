@@ -7,6 +7,7 @@ import {
   ListChecks,
   ScanLine,
   Settings,
+  Users,
 } from 'lucide-react'
 import { cn } from '#/lib/utils'
 
@@ -17,6 +18,7 @@ const NAV_ITEMS = [
   { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
   { label: 'Checklists', to: '/checklists', icon: ListChecks },
   { label: 'Gaps', to: '/gaps', icon: AlertTriangle },
+  { label: 'Clients', to: '/clients', icon: Users },
   { label: 'Documents', to: '/documents', icon: FileText },
   { label: 'Obligations', to: '/obligations', icon: Gavel },
 ] as const
@@ -46,16 +48,16 @@ function NavItem({
         'group relative flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium',
         'text-sidebar-foreground/80 transition-colors',
         'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
-        // Active: white card lifted off the paper sidebar, indigo ink, and a
+        // Active: card lifted off the paper sidebar, primary ink, and a
         // short accent bar hugging the left edge.
-        'data-[status=active]:bg-white data-[status=active]:text-[#3730a3]',
+        'data-[status=active]:bg-card data-[status=active]:text-primary',
         'data-[status=active]:shadow-[0_1px_2px_rgba(28,25,23,0.06)]',
-        'data-[status=active]:ring-1 data-[status=active]:ring-[#e7e2da]',
+        'data-[status=active]:ring-1 data-[status=active]:ring-border',
       )}
     >
       <span
         aria-hidden
-        className="absolute top-1/2 left-0 hidden h-4 w-0.5 -translate-y-1/2 rounded-full bg-[#3730a3] group-data-[status=active]:block"
+        className="absolute top-1/2 left-0 hidden h-4 w-0.5 -translate-y-1/2 rounded-full bg-primary group-data-[status=active]:block"
       />
       <Icon className="size-4 shrink-0" strokeWidth={1.9} />
       {label}
@@ -86,11 +88,11 @@ export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 export function Brand() {
   return (
     <div className="flex items-center gap-2.5">
-      <span className="flex size-7 items-center justify-center rounded-md bg-[#3730a3] text-white">
+      <span className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
         <ScanLine className="size-4" strokeWidth={2.2} />
       </span>
       <span className="text-[15px] font-semibold tracking-tight text-foreground">
-        SEBISync<span className="text-[#3730a3]">·AI</span>
+        SEBISync<span className="text-primary">·AI</span>
       </span>
     </div>
   )
