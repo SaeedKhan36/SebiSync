@@ -28,7 +28,9 @@ describe("obligationRouter.publish", () => {
     writeAuditLog.mockReset().mockResolvedValue({});
     trigger.mockReset();
     vi.spyOn(prisma.obligation, "findUniqueOrThrow");
-    vi.spyOn(prisma.obligation, "update").mockImplementation(() => Promise.resolve({} as never));
+    vi.spyOn(prisma.obligation, "update").mockImplementation(
+      ({ where, data }: never) => Promise.resolve({ id: (where as { id: string }).id, ...(data as object) } as never),
+    );
   });
 
   it("rejects with BAD_REQUEST when the obligation is not DRAFT", async () => {
