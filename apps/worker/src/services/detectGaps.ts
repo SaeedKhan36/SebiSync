@@ -1,8 +1,7 @@
 import { prisma } from "@sebi/db";
 import { writeAuditLog } from "../lib/audit";
 import { notifyGap } from "./notifyGap";
-
-const GRACE_PERIOD_DAYS = 30;
+import { evaluateGap } from "./gapRules";
 
 // Pure service function: no knowledge of HTTP, schedulers, or triggers.
 // Callable from the manual POST /internal/detect-gaps route today, from a UI
@@ -26,26 +25,17 @@ export async function detectGaps(): Promise<{ created: number }> {
   for (const item of items) {
     const latestEvidence = item.evidenceRecords[0];
 
-    let gapType: "PAST_DEADLINE" | "MISSING_EVIDENCE" | "STALE_EVIDENCE" | null = null;
-    let severity: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL" = "MEDIUM";
-
-    if (item.dueDate && item.dueDate < now && !latestEvidence) {
-      gapType = "PAST_DEADLINE";
-      const overdueMs = now.getTime() - item.dueDate.getTime();
-      const deadlineMs = item.dueDate.getTime() - item.createdAt.getTime();
-      severity = deadlineMs > 0 && overdueMs > 2 * deadlineMs ? "CRITICAL" : "HIGH";
-    } else if (!item.dueDate && !latestEvidence) {
-      const ageDays = (now.getTime() - item.createdAt.getTime()) / (24 * 60 * 60 * 1000);
-      if (ageDays > GRACE_PERIOD_DAYS) {
-        gapType = "MISSING_EVIDENCE";
-        severity = "MEDIUM";
-      }
-    } else if (latestEvidence?.validUntil && latestEvidence.validUntil < now) {
-      gapType = "STALE_EVIDENCE";
-      severity = "MEDIUM";
-    }
-
-    if (!gapType) continue;
+    const evaluation = evaluateGap(
+      {
+        dueDate: item.dueDate,
+        createdAt: item.createdAt,
+        hasEvidence: Boolean(latestEvidence),
+        latestEvidenceValidUntil: latestEvidence?.validUntil,
+      },
+      now,
+    );
+    if (!evaluation) continue;
+    const { gapType, severity } = evaluation;
 
     const existingUnresolved = await prisma.complianceGap.findFirst({
       where: { checklistItemId: item.id, gapType, resolvedAt: null },
