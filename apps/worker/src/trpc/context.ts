@@ -17,6 +17,7 @@ export async function createContext(_opts: unknown, c: HonoContext) {
     prisma,
     userId: auth?.userId ?? null,
     orgId: auth?.orgId ?? null,
+    orgRole: auth?.orgRole ?? null,
     intermediaryId,
   };
 }

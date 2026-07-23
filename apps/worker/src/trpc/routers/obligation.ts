@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { obligationStatusSchema } from "@sebi/schemas";
-import { router, protectedProcedure } from "../trpc";
+import { router, protectedProcedure, adminProcedure } from "../trpc";
 import { writeAuditLog } from "../../lib/audit";
 import { log } from "../../lib/logger";
 import { propagateObligationTask } from "../../queue/tasks/propagate-obligation";
@@ -55,7 +55,7 @@ export const obligationRouter = router({
   // try/catch so a Trigger.dev outage doesn't fail the publish mutation
   // itself — it degrades to fanOutStatus FAILED with an explanatory error
   // instead.
-  publish: protectedProcedure
+  publish: adminProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const existing = await ctx.prisma.obligation.findUniqueOrThrow({ where: { id: input.id } });

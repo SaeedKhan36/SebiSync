@@ -18,6 +18,7 @@ export function getClerkClient(): ClerkClient {
 export interface AuthResult {
   userId: string;
   orgId: string | null;
+  orgRole: string | null;
 }
 
 // Verifies the Clerk session token on the incoming request (Authorization:
@@ -32,5 +33,5 @@ export async function authenticateRequest(request: Request): Promise<AuthResult 
   if (!auth.userId) {
     return null;
   }
-  return { userId: auth.userId, orgId: auth.orgId ?? null };
+  return { userId: auth.userId, orgId: auth.orgId ?? null, orgRole: auth.orgRole ?? null };
 }

@@ -25,6 +25,17 @@ export const clerkOrgProcedure = protectedProcedure.use(({ ctx, next }) => {
   return next({ ctx: { ...ctx, orgId: ctx.orgId } });
 });
 
+// Requires a signed-in user whose active Clerk org role is "org:admin".
+// Deliberately built on protectedProcedure, not orgProcedure — regulatory
+// documents/obligations are global data, not scoped to one Intermediary, so
+// this only cares about the caller's role, not which org is provisioned.
+export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (ctx.orgRole !== "org:admin") {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Admin role required" });
+  }
+  return next({ ctx });
+});
+
 // Requires a signed-in user AND an active Clerk organization that maps to a
 // provisioned Intermediary. All org-scoped queries should use this so every
 // procedure sees exactly one org's data, resolved server-side (never taken

@@ -1,13 +1,13 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { createDocumentSchema, docStatusSchema } from "@sebi/schemas";
-import { router, protectedProcedure } from "../trpc";
+import { router, protectedProcedure, adminProcedure } from "../trpc";
 import { writeAuditLog } from "../../lib/audit";
 import { log } from "../../lib/logger";
 import { ingestDocumentTask } from "../../queue/tasks/ingestion";
 
 export const documentRouter = router({
-  create: protectedProcedure.input(createDocumentSchema).mutation(async ({ ctx, input }) => {
+  create: adminProcedure.input(createDocumentSchema).mutation(async ({ ctx, input }) => {
     const document = await ctx.prisma.regulatoryDocument.create({
       data: {
         title: input.title,
@@ -29,7 +29,7 @@ export const documentRouter = router({
     return document;
   }),
 
-  getUploadUrl: protectedProcedure
+  getUploadUrl: adminProcedure
     .input(z.object({ documentId: z.string(), fileName: z.string(), contentType: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const { getPresignedUploadUrl } = await import("../../storage/r2");
@@ -42,7 +42,7 @@ export const documentRouter = router({
       return { uploadUrl, r2ObjectKey };
     }),
 
-  triggerExtraction: protectedProcedure
+  triggerExtraction: adminProcedure
     .input(z.object({ documentId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       await ctx.prisma.regulatoryDocument.update({
@@ -88,7 +88,7 @@ export const documentRouter = router({
   // Re-triggers ingestion for a document stuck in FAILED — a fresh,
   // timestamped idempotency key (not the bare documentId) so a genuine retry
   // isn't deduped away by the original attempt's now-irrelevant key.
-  retryExtraction: protectedProcedure
+  retryExtraction: adminProcedure
     .input(z.object({ documentId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const document = await ctx.prisma.regulatoryDocument.findUniqueOrThrow({
