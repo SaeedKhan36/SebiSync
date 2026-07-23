@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { TRPCError } from "@trpc/server";
 import { obligationStatusSchema } from "@sebi/schemas";
 import { router, protectedProcedure } from "../trpc";
 import { writeAuditLog } from "../../lib/audit";
@@ -59,7 +60,10 @@ export const obligationRouter = router({
     .mutation(async ({ ctx, input }) => {
       const existing = await ctx.prisma.obligation.findUniqueOrThrow({ where: { id: input.id } });
       if (existing.status !== "DRAFT") {
-        throw new Error(`Obligation ${input.id} is not in DRAFT status (current: ${existing.status})`);
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Obligation ${input.id} is not in DRAFT status (current: ${existing.status})`,
+        });
       }
       const updated = await ctx.prisma.obligation.update({
         where: { id: input.id },

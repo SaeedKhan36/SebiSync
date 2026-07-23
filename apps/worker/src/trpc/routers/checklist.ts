@@ -51,9 +51,10 @@ export const checklistRouter = router({
         where: { id: input.obligationId },
       });
       if (obligation.frequency !== "PER_EVENT" || obligation.deadlineDays == null) {
-        throw new Error(
-          `Obligation ${input.obligationId} is not a PER_EVENT obligation with a deadline`,
-        );
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Obligation ${input.obligationId} is not a PER_EVENT obligation with a deadline`,
+        });
       }
       const dueDate = new Date(input.eventDate);
       dueDate.setDate(dueDate.getDate() + obligation.deadlineDays);
