@@ -10,6 +10,7 @@ export type DocumentListItem = inferRouterOutputs<AppRouter>['document']['list']
 
 export interface DocumentListFilters {
   status?: DocStatus
+  search?: string
   cursor?: string
 }
 
@@ -20,6 +21,7 @@ export function useDocumentList(filters: DocumentListFilters) {
   return useSuspenseQuery(
     trpc.document.list.queryOptions({
       status: filters.status,
+      search: filters.search,
       cursor: filters.cursor,
       limit: PAGE_SIZE,
     }),

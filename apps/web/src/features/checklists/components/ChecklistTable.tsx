@@ -18,6 +18,8 @@ export function ChecklistTable({ items, filters, toolbar, onRowClick }: Checklis
       data={items}
       toolbar={toolbar}
       onRowClick={onRowClick}
+      getSearchValue={(item) => `${item.obligation.title} ${item.obligation.code} ${item.client?.name ?? ''}`}
+      searchPlaceholder="Search checklist items…"
       emptyState={
         <EmptyState
           icon={ListChecks}

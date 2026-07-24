@@ -5,6 +5,7 @@ import {
   type SortingState,
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
@@ -17,6 +18,9 @@ import {
   TableHeader,
   TableRow,
 } from '#/components/ui/table'
+import { Checkbox } from '#/components/ui/checkbox'
+import { Input } from '#/components/ui/input'
+import { useDebouncedValue } from '#/lib/useDebouncedValue'
 import { DataTablePagination } from './DataTablePagination'
 import { DataTableToolbar } from './DataTableToolbar'
 
@@ -27,6 +31,14 @@ interface DataTableProps<TData, TValue> {
   emptyState?: React.ReactNode
   onRowClick?: (row: TData) => void
   isLoading?: boolean
+  // Explicit accessor rather than TanStack's default global-filter behavior
+  // (which only sees accessorFn columns) — some searchable text (e.g.
+  // obligation code) lives only inside a cell renderer, not an accessor.
+  getSearchValue?: (row: TData) => string
+  searchPlaceholder?: string
+  enableRowSelection?: boolean
+  bulkActions?: (selectedRows: TData[], clearSelection: () => void) => React.ReactNode
+  defaultSorting?: SortingState
 }
 
 // Generic TanStack Table + shadcn Table wrapper. Per-domain code only
@@ -41,26 +53,90 @@ export function DataTable<TData, TValue>({
   emptyState,
   onRowClick,
   isLoading,
+  getSearchValue,
+  searchPlaceholder,
+  enableRowSelection,
+  bulkActions,
+  defaultSorting,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>([])
+  const [sorting, setSorting] = useState<SortingState>(defaultSorting ?? [])
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+  const [searchInput, setSearchInput] = useState('')
+  const globalFilter = useDebouncedValue(searchInput, 250)
+
+  const selectionColumn: ColumnDef<TData, TValue> = {
+    id: 'select',
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && 'indeterminate')
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        onClick={(e) => e.stopPropagation()}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        onClick={(e) => e.stopPropagation()}
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+  }
+  const tableColumns = enableRowSelection ? [selectionColumn, ...columns] : columns
 
   const table = useReactTable({
     data,
-    columns,
-    state: { sorting, rowSelection },
+    columns: tableColumns,
+    // globalFilter is controlled entirely by our own debounced searchInput
+    // state (no onGlobalFilterChange) — the toolbar Input below is the only
+    // writer, so the table never needs to report filter changes back.
+    state: { sorting, rowSelection, globalFilter },
     onSortingChange: setSorting,
     onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    getFilteredRowModel: getSearchValue ? getFilteredRowModel() : undefined,
+    globalFilterFn: getSearchValue
+      ? (row, _columnId, filterValue: string) =>
+          getSearchValue(row.original).toLowerCase().includes(filterValue.toLowerCase())
+      : undefined,
+    enableRowSelection,
   })
 
   const isEmpty = !isLoading && data.length === 0
+  const selectedRows = table.getSelectedRowModel().rows.map((row) => row.original)
 
   return (
     <div className="space-y-4">
-      {toolbar && <DataTableToolbar>{toolbar}</DataTableToolbar>}
+      {(toolbar || getSearchValue) && (
+        <DataTableToolbar>
+          {getSearchValue && (
+            <Input
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder={searchPlaceholder ?? 'Search…'}
+              className="w-full bg-card sm:w-64"
+            />
+          )}
+          {toolbar}
+        </DataTableToolbar>
+      )}
+      {enableRowSelection && bulkActions && selectedRows.length > 0 && (
+        <div className="flex items-center justify-between rounded-lg border border-border bg-accent/40 px-4 py-2.5">
+          <p className="text-sm font-medium">
+            {selectedRows.length} selected
+          </p>
+          <div className="flex items-center gap-2">
+            {bulkActions(selectedRows, () => table.resetRowSelection())}
+          </div>
+        </div>
+      )}
       {/* White card container; inner horizontal scroll keeps the table
           usable on narrow viewports without crushing columns. */}
       <div className="overflow-hidden rounded-lg border border-border bg-card shadow-[0_1px_2px_rgba(28,25,23,0.04)]">
@@ -85,7 +161,7 @@ export function DataTable<TData, TValue>({
             <TableBody>
               {isEmpty ? (
                 <TableRow className="hover:bg-transparent">
-                  <TableCell colSpan={columns.length} className="h-auto p-4">
+                  <TableCell colSpan={tableColumns.length} className="h-auto p-4">
                     {emptyState}
                   </TableCell>
                 </TableRow>

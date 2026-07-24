@@ -8,15 +8,33 @@ interface ObligationTableProps {
   items: ObligationListItem[]
   toolbar?: React.ReactNode
   onRowClick: (item: ObligationListItem) => void
+  enableRowSelection?: boolean
+  bulkActions?: (
+    selectedRows: ObligationListItem[],
+    clearSelection: () => void,
+  ) => React.ReactNode
+  defaultSorting?: { id: string; desc: boolean }[]
 }
 
-export function ObligationTable({ items, toolbar, onRowClick }: ObligationTableProps) {
+export function ObligationTable({
+  items,
+  toolbar,
+  onRowClick,
+  enableRowSelection,
+  bulkActions,
+  defaultSorting,
+}: ObligationTableProps) {
   return (
     <DataTable
       columns={obligationColumns}
       data={items}
       toolbar={toolbar}
       onRowClick={onRowClick}
+      getSearchValue={(o) => `${o.title} ${o.code}`}
+      searchPlaceholder="Search obligations…"
+      enableRowSelection={enableRowSelection}
+      bulkActions={bulkActions}
+      defaultSorting={defaultSorting}
       emptyState={
         <EmptyState icon={Gavel} title="No obligations" description="Nothing matches the current filters." />
       }

@@ -139,13 +139,24 @@ export const documentRouter = router({
     .input(
       z.object({
         status: docStatusSchema.optional(),
+        search: z.string().optional(),
         cursor: z.string().optional(),
         limit: z.number().int().min(1).max(100).default(20),
       }),
     )
     .query(({ ctx, input }) =>
       ctx.prisma.regulatoryDocument.findMany({
-        where: input.status ? { status: input.status } : undefined,
+        where: {
+          status: input.status,
+          ...(input.search
+            ? {
+                OR: [
+                  { title: { contains: input.search, mode: "insensitive" } },
+                  { circularNumber: { contains: input.search, mode: "insensitive" } },
+                ],
+              }
+            : {}),
+        },
         orderBy: { createdAt: "desc" },
         take: input.limit,
         ...(input.cursor ? { cursor: { id: input.cursor }, skip: 1 } : {}),

@@ -125,6 +125,17 @@ export const gapSeverityChartColorMap: Record<GapSeverity, string> = {
 // importing Prisma types into the frontend).
 export type ObligationFanOutStatus = 'NONE' | 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED'
 
+// Extraction confidence (Obligation.extractionConfidence, 0-1) isn't an
+// enum, so it can't be a Record like the other maps — this buckets the
+// continuous value into the same StatusEntry shape via thresholds. Tunable:
+// picked as a reasonable "flag for human review" cutoff, not measured
+// against the real extraction pipeline's confidence distribution yet.
+export function confidenceBucket(value: number): StatusEntry {
+  if (value < 0.7) return { label: 'Low', variant: 'outline', className: 'border-amber-500 text-amber-700' }
+  if (value >= 0.9) return { label: 'High', variant: 'default', className: 'bg-[#15803d] hover:bg-[#15803d]/90' }
+  return { label: 'Medium', variant: 'secondary' }
+}
+
 export const obligationFanOutStatusColorMap: Record<ObligationFanOutStatus, StatusEntry> = {
   NONE: { label: 'Not published', variant: 'secondary' },
   PENDING: { label: 'Fan-out queued', variant: 'outline', className: 'border-amber-500 text-amber-700' },
