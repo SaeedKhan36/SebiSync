@@ -1,3 +1,5 @@
+import { Link } from '@tanstack/react-router'
+import type { LinkProps } from '@tanstack/react-router'
 import {
   AlertTriangle,
   BookOpenCheck,
@@ -24,6 +26,10 @@ interface StatTile {
   // Icon chip tint — the number itself always stays in ink (text wears text
   // tokens, never the series color).
   chipClass: string
+  // Where the tile drills through to. Every stat on this page answers a
+  // question the corresponding list page answers in full, so each tile is a
+  // pre-filtered entry point rather than a dead number.
+  link: LinkProps
 }
 
 export function SummaryCards({ summary }: SummaryCardsProps) {
@@ -44,6 +50,7 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
       hint: 'across your client book',
       icon: ListChecks,
       chipClass: 'bg-[#eef2ff] text-[#3730a3]',
+      link: { to: '/checklists' },
     },
     {
       label: 'Compliant',
@@ -51,6 +58,7 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
       hint: compliantPct === null ? 'no items yet' : `${compliantPct}% of all items`,
       icon: CheckCircle2,
       chipClass: 'bg-[#f0fdf4] text-[#15803d]',
+      link: { to: '/checklists', search: { status: 'COMPLIANT' } },
     },
     {
       label: 'Open gaps',
@@ -59,6 +67,9 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
       icon: AlertTriangle,
       chipClass:
         openGapsCount === 0 ? 'bg-muted text-muted-foreground' : 'bg-[#fef2f2] text-[#b91c1c]',
+      // 'unresolved' not `false` — the gaps route models this as a tri-state
+      // string enum so it round-trips through the URL.
+      link: { to: '/gaps', search: { resolved: 'unresolved' } },
     },
     {
       label: 'Obligations published',
@@ -66,15 +77,17 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
       hint: 'live in the register',
       icon: BookOpenCheck,
       chipClass: 'bg-[#eef2ff] text-[#3730a3]',
+      link: { to: '/obligations', search: { status: 'PUBLISHED' } },
     },
   ]
 
   return (
-    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
       {tiles.map((tile) => (
-        <div
+        <Link
           key={tile.label}
-          className="rounded-lg border border-border bg-card p-5 shadow-[0_1px_2px_rgba(28,25,23,0.04)]"
+          {...tile.link}
+          className="rounded-lg border border-border bg-card p-5 shadow-[0_1px_2px_rgba(28,25,23,0.04)] transition-colors transition-shadow hover:border-primary/40 hover:shadow-[0_2px_8px_rgba(28,25,23,0.07)]"
         >
           <div className="flex items-start justify-between gap-2">
             <p className="text-[13px] font-medium text-muted-foreground">{tile.label}</p>
@@ -91,7 +104,7 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
             {tile.value}
           </p>
           <p className="mt-2 text-xs text-muted-foreground">{tile.hint}</p>
-        </div>
+        </Link>
       ))}
     </div>
   )
