@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PreviewDashboardRouteImport } from './routes/preview-dashboard'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedOrgRouteRouteImport } from './routes/_authenticated/_org/route'
@@ -30,6 +31,11 @@ import { Route as AuthenticatedOrgSettingsOrganizationRouteImport } from './rout
 import { Route as AuthenticatedOrgGapsGapIdRouteImport } from './routes/_authenticated/_org/gaps/$gapId'
 import { Route as AuthenticatedOrgChecklistsChecklistItemIdRouteImport } from './routes/_authenticated/_org/checklists/$checklistItemId'
 
+const PreviewDashboardRoute = PreviewDashboardRouteImport.update({
+  id: '/preview-dashboard',
+  path: '/preview-dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -144,6 +150,7 @@ const AuthenticatedOrgChecklistsChecklistItemIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/preview-dashboard': typeof PreviewDashboardRoute
   '/documents/$documentId': typeof AuthenticatedDocumentsDocumentIdRoute
   '/obligations/$obligationId': typeof AuthenticatedObligationsObligationIdRoute
   '/obligations/review': typeof AuthenticatedObligationsReviewRoute
@@ -164,6 +171,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/preview-dashboard': typeof PreviewDashboardRoute
   '/documents/$documentId': typeof AuthenticatedDocumentsDocumentIdRoute
   '/obligations/$obligationId': typeof AuthenticatedObligationsObligationIdRoute
   '/obligations/review': typeof AuthenticatedObligationsReviewRoute
@@ -186,6 +194,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/preview-dashboard': typeof PreviewDashboardRoute
   '/_authenticated/_org': typeof AuthenticatedOrgRouteRouteWithChildren
   '/_authenticated/documents/$documentId': typeof AuthenticatedDocumentsDocumentIdRoute
   '/_authenticated/obligations/$obligationId': typeof AuthenticatedObligationsObligationIdRoute
@@ -209,6 +218,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/preview-dashboard'
     | '/documents/$documentId'
     | '/obligations/$obligationId'
     | '/obligations/review'
@@ -229,6 +239,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/preview-dashboard'
     | '/documents/$documentId'
     | '/obligations/$obligationId'
     | '/obligations/review'
@@ -250,6 +261,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/preview-dashboard'
     | '/_authenticated/_org'
     | '/_authenticated/documents/$documentId'
     | '/_authenticated/obligations/$obligationId'
@@ -273,6 +285,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  PreviewDashboardRoute: typeof PreviewDashboardRoute
   AuthLoginSplatRoute: typeof AuthLoginSplatRoute
   AuthRegisterSplatRoute: typeof AuthRegisterSplatRoute
   AuthLoginIndexRoute: typeof AuthLoginIndexRoute
@@ -281,6 +294,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/preview-dashboard': {
+      id: '/preview-dashboard'
+      path: '/preview-dashboard'
+      fullPath: '/preview-dashboard'
+      preLoaderRoute: typeof PreviewDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
@@ -478,6 +498,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  PreviewDashboardRoute: PreviewDashboardRoute,
   AuthLoginSplatRoute: AuthLoginSplatRoute,
   AuthRegisterSplatRoute: AuthRegisterSplatRoute,
   AuthLoginIndexRoute: AuthLoginIndexRoute,
