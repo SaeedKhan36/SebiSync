@@ -3,6 +3,7 @@ import { PageHeader } from '#/components/layout/PageHeader'
 import { Skeleton } from '#/components/ui/skeleton'
 import { useObligationList } from '#/features/obligations/hooks/useObligationList'
 import { ObligationTable } from '#/features/obligations/components/ObligationTable'
+import { BulkPublishBar } from '#/features/obligations/components/BulkPublishBar'
 
 // Thin, hardcoded to status: 'DRAFT' — no status filter UI here at all,
 // since the review queue's entire purpose is "only DRAFT". A separate route
@@ -29,6 +30,11 @@ function ObligationReviewPage() {
         onRowClick={(item) => {
           void navigate({ to: '/obligations/$obligationId', params: { obligationId: item.id } })
         }}
+        enableRowSelection
+        bulkActions={(rows, clear) => (
+          <BulkPublishBar ids={rows.map((r) => r.id)} onDone={clear} />
+        )}
+        defaultSorting={[{ id: 'confidence', desc: false }]}
       />
     </div>
   )

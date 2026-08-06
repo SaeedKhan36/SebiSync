@@ -12,6 +12,7 @@ import {
 import { gapSeverityColorMap } from '#/components/status/statusColorMaps'
 import { useGapList } from '#/features/gaps/hooks/useGapList'
 import { GapTable } from '#/features/gaps/components/GapTable'
+import { BulkResolveGapsDialog } from '#/features/gaps/components/BulkResolveGapsDialog'
 
 const ALL = 'ALL'
 const SEVERITY_VALUES = Object.keys(gapSeverityColorMap) as [
@@ -62,6 +63,13 @@ function GapsPage() {
         onRowClick={(item) => {
           void navigate({ to: '/gaps/$gapId', params: { gapId: item.id } })
         }}
+        enableRowSelection
+        bulkActions={(rows, clear) => (
+          <BulkResolveGapsDialog
+            gapIds={rows.filter((g) => !g.resolvedAt).map((g) => g.id)}
+            onDone={clear}
+          />
+        )}
         toolbar={
           <>
             <Select

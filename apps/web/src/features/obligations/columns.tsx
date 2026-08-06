@@ -1,6 +1,7 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { StatusBadge } from '#/components/status/StatusBadge'
 import { obligationStatusColorMap } from '#/components/status/statusColorMaps'
+import { ConfidenceIndicator } from '#/components/status/ConfidenceIndicator'
 import { CategoryChips } from '#/features/obligations/components/CategoryChips'
 import type { ObligationListItem } from '#/features/obligations/hooks/useObligationList'
 
@@ -25,5 +26,15 @@ export const obligationColumns: ColumnDef<ObligationListItem>[] = [
     id: 'status',
     header: 'Status',
     cell: ({ row }) => <StatusBadge value={row.original.status} map={obligationStatusColorMap} />,
+  },
+  {
+    id: 'confidence',
+    header: 'Confidence',
+    // Sorts nulls to the bottom regardless of direction, so ascending sort
+    // (used by the review queue's defaultSorting) surfaces the lowest real
+    // confidence scores first rather than untyped/null ones.
+    accessorFn: (row) => row.extractionConfidence ?? undefined,
+    sortUndefined: 'last',
+    cell: ({ row }) => <ConfidenceIndicator value={row.original.extractionConfidence} />,
   },
 ]

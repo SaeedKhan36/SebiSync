@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '#/components/ui/card'
 import { CitationPanel } from '#/components/CitationPanel'
 import { DetailField } from '#/components/DetailField'
 import { StatusBadge } from '#/components/status/StatusBadge'
+import { ConfidenceIndicator } from '#/components/status/ConfidenceIndicator'
 import { obligationStatusColorMap, obligationFanOutStatusColorMap } from '#/components/status/statusColorMaps'
 import { CategoryChips } from '#/features/obligations/components/CategoryChips'
 import { PublishObligationButton } from '#/features/obligations/components/PublishObligationButton'
@@ -56,6 +57,9 @@ export function ObligationDetailPanel({ obligation }: { obligation: ObligationDe
               {obligation.deadlineDays != null ? `${obligation.deadlineDays} days` : '—'}
             </DetailField>
             <DetailField label="Penalty / risk">{obligation.penaltyOrRisk ?? '—'}</DetailField>
+            <DetailField label="Extraction confidence">
+              <ConfidenceIndicator value={obligation.extractionConfidence} />
+            </DetailField>
             <DetailField label="Applicable categories" className="sm:col-span-2">
               <CategoryChips categories={obligation.applicableCategories} />
             </DetailField>
