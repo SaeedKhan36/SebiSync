@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PreviewDocumentsRouteImport } from './routes/preview-documents'
 import { Route as PreviewDashboardRouteImport } from './routes/preview-dashboard'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -31,6 +32,11 @@ import { Route as AuthenticatedOrgSettingsOrganizationRouteImport } from './rout
 import { Route as AuthenticatedOrgGapsGapIdRouteImport } from './routes/_authenticated/_org/gaps/$gapId'
 import { Route as AuthenticatedOrgChecklistsChecklistItemIdRouteImport } from './routes/_authenticated/_org/checklists/$checklistItemId'
 
+const PreviewDocumentsRoute = PreviewDocumentsRouteImport.update({
+  id: '/preview-documents',
+  path: '/preview-documents',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PreviewDashboardRoute = PreviewDashboardRouteImport.update({
   id: '/preview-dashboard',
   path: '/preview-dashboard',
@@ -151,6 +157,7 @@ const AuthenticatedOrgChecklistsChecklistItemIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/preview-dashboard': typeof PreviewDashboardRoute
+  '/preview-documents': typeof PreviewDocumentsRoute
   '/documents/$documentId': typeof AuthenticatedDocumentsDocumentIdRoute
   '/obligations/$obligationId': typeof AuthenticatedObligationsObligationIdRoute
   '/obligations/review': typeof AuthenticatedObligationsReviewRoute
@@ -172,6 +179,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/preview-dashboard': typeof PreviewDashboardRoute
+  '/preview-documents': typeof PreviewDocumentsRoute
   '/documents/$documentId': typeof AuthenticatedDocumentsDocumentIdRoute
   '/obligations/$obligationId': typeof AuthenticatedObligationsObligationIdRoute
   '/obligations/review': typeof AuthenticatedObligationsReviewRoute
@@ -195,6 +203,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/preview-dashboard': typeof PreviewDashboardRoute
+  '/preview-documents': typeof PreviewDocumentsRoute
   '/_authenticated/_org': typeof AuthenticatedOrgRouteRouteWithChildren
   '/_authenticated/documents/$documentId': typeof AuthenticatedDocumentsDocumentIdRoute
   '/_authenticated/obligations/$obligationId': typeof AuthenticatedObligationsObligationIdRoute
@@ -219,6 +228,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/preview-dashboard'
+    | '/preview-documents'
     | '/documents/$documentId'
     | '/obligations/$obligationId'
     | '/obligations/review'
@@ -240,6 +250,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/preview-dashboard'
+    | '/preview-documents'
     | '/documents/$documentId'
     | '/obligations/$obligationId'
     | '/obligations/review'
@@ -262,6 +273,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/preview-dashboard'
+    | '/preview-documents'
     | '/_authenticated/_org'
     | '/_authenticated/documents/$documentId'
     | '/_authenticated/obligations/$obligationId'
@@ -286,6 +298,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   PreviewDashboardRoute: typeof PreviewDashboardRoute
+  PreviewDocumentsRoute: typeof PreviewDocumentsRoute
   AuthLoginSplatRoute: typeof AuthLoginSplatRoute
   AuthRegisterSplatRoute: typeof AuthRegisterSplatRoute
   AuthLoginIndexRoute: typeof AuthLoginIndexRoute
@@ -294,6 +307,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/preview-documents': {
+      id: '/preview-documents'
+      path: '/preview-documents'
+      fullPath: '/preview-documents'
+      preLoaderRoute: typeof PreviewDocumentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/preview-dashboard': {
       id: '/preview-dashboard'
       path: '/preview-dashboard'
@@ -499,6 +519,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   PreviewDashboardRoute: PreviewDashboardRoute,
+  PreviewDocumentsRoute: PreviewDocumentsRoute,
   AuthLoginSplatRoute: AuthLoginSplatRoute,
   AuthRegisterSplatRoute: AuthRegisterSplatRoute,
   AuthLoginIndexRoute: AuthLoginIndexRoute,

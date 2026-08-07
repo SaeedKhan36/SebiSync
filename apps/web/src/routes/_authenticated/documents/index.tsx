@@ -1,29 +1,14 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { z } from 'zod'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { PageHeader } from '#/components/layout/PageHeader'
 import { Skeleton } from '#/components/ui/skeleton'
-import { Button } from '#/components/ui/button'
-import { Input } from '#/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '#/components/ui/select'
-import { docStatusColorMap } from '#/components/status/statusColorMaps'
 import { useDebouncedValue } from '#/lib/useDebouncedValue'
 import { useDocumentList, DOCUMENT_PAGE_SIZE } from '#/features/documents/hooks/useDocumentList'
 import { DocumentTable } from '#/features/documents/components/DocumentTable'
 import { DocumentUploadForm } from '#/features/documents/components/DocumentUploadForm'
-
-const ALL = 'ALL'
-const STATUS_VALUES = Object.keys(docStatusColorMap) as [
-  keyof typeof docStatusColorMap,
-  ...Array<keyof typeof docStatusColorMap>,
-]
+import { DocumentsPagination } from '#/features/documents/components/DocumentsPagination'
+import { DOC_STATUS_VALUES, DocumentsToolbar } from '#/features/documents/components/DocumentsToolbar'
 
 // Native v4 schema per the Zod v3/v4 boundary rule. cursor lives in the URL
 // (Table Strategy: "a shared link resumes correctly"). `stack` holds the
@@ -31,7 +16,7 @@ const STATUS_VALUES = Object.keys(docStatusColorMap) as [
 // document.list returns no total/offset metadata, so this client-side
 // back-stack is the lowest-churn way to get working Prev/Next.
 const documentSearchSchema = z.object({
-  status: z.enum(STATUS_VALUES).optional(),
+  status: z.enum(DOC_STATUS_VALUES).optional(),
   search: z.string().optional(),
   cursor: z.string().optional(),
   stack: z.array(z.string()).optional(),
@@ -51,14 +36,27 @@ export const Route = createFileRoute('/_authenticated/documents/')({
 function DocumentsPage() {
   const search = Route.useSearch()
   const navigate = Route.useNavigate()
-  const { data: items } = useDocumentList(search)
+  const { data: items, isFetching } = useDocumentList(search)
 
   const stack = search.stack ?? []
+  const urlSearch = search.search ?? ''
+  const isFiltered = urlSearch !== '' || search.status !== undefined
+  // No total count comes back from the cursor query, so "there is a next
+  // page" can only be inferred from having received a full page of rows.
+  const hasNextPage = items.length === DOCUMENT_PAGE_SIZE
 
-  const [searchInput, setSearchInput] = useState(search.search ?? '')
+  const [searchInput, setSearchInput] = useState(urlSearch)
   const debouncedSearchInput = useDebouncedValue(searchInput, 300)
+
+  // Holds the last value this component wrote to the URL, so the pull-back
+  // effect below can tell our own navigation echoing back (ignore it) from an
+  // external change like Back/Forward or "Clear filters" (adopt it). Without
+  // this, an in-flight navigation could clobber newer keystrokes.
+  const pushedSearch = useRef(urlSearch)
+
   useEffect(() => {
     if (debouncedSearchInput === (search.search ?? '')) return
+    pushedSearch.current = debouncedSearchInput
     void navigate({
       search: (prev) => ({
         ...prev,
@@ -71,6 +69,18 @@ function DocumentsPage() {
     // would otherwise retrigger this effect after every navigation it causes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearchInput])
+
+  useEffect(() => {
+    if (urlSearch === pushedSearch.current) return
+    pushedSearch.current = urlSearch
+    setSearchInput(urlSearch)
+  }, [urlSearch])
+
+  function clearFilters() {
+    setSearchInput('')
+    pushedSearch.current = ''
+    void navigate({ search: () => ({}) })
+  }
 
   return (
     <div className="space-y-6">
@@ -85,102 +95,100 @@ function DocumentsPage() {
           />
         }
       />
-      <DocumentTable
-        items={items}
-        onRowClick={(item) => {
-          void navigate({ to: '/documents/$documentId', params: { documentId: item.id } })
-        }}
-        toolbar={
-          <>
-            <Input
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search title or circular number…"
-              className="w-full bg-card sm:w-64"
+      {/* Dims while a filter/page change is in flight so the rows on screen
+          read as stale rather than current, without a layout-shifting swap
+          to a skeleton. */}
+      <div
+        aria-busy={isFetching}
+        className={`transition-opacity duration-200 ${isFetching ? 'opacity-60' : ''}`}
+      >
+        <DocumentTable
+          items={items}
+          isFiltered={isFiltered}
+          onClearFilters={clearFilters}
+          onRowClick={(item) => {
+            void navigate({ to: '/documents/$documentId', params: { documentId: item.id } })
+          }}
+          toolbar={
+            <DocumentsToolbar
+              searchInput={searchInput}
+              onSearchInputChange={setSearchInput}
+              status={search.status}
+              onStatusChange={(status) =>
+                navigate({
+                  search: (prev) => ({ ...prev, status, cursor: undefined, stack: undefined }),
+                })
+              }
+              isFiltered={isFiltered}
+              onClearFilters={clearFilters}
             />
-            <Select
-              value={search.status ?? ALL}
-              onValueChange={(value) =>
+          }
+          footer={
+            <DocumentsPagination
+              count={items.length}
+              pageIndex={stack.length}
+              hasPreviousPage={stack.length > 0}
+              hasNextPage={hasNextPage}
+              onPrevious={() =>
+                navigate({
+                  search: (prev) => {
+                    const prevStack = prev.stack ?? []
+                    return {
+                      ...prev,
+                      cursor: prevStack.at(-1) || undefined,
+                      stack: prevStack.slice(0, -1),
+                    }
+                  },
+                })
+              }
+              onNext={() =>
                 navigate({
                   search: (prev) => ({
                     ...prev,
-                    status: value === ALL ? undefined : (value as (typeof STATUS_VALUES)[number]),
-                    cursor: undefined,
-                    stack: undefined,
+                    stack: [...(prev.stack ?? []), prev.cursor ?? ''],
+                    cursor: items[items.length - 1]!.id,
                   }),
                 })
               }
-            >
-              <SelectTrigger className="w-full bg-card sm:w-44">
-                <SelectValue placeholder="All statuses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL}>All statuses</SelectItem>
-                {STATUS_VALUES.map((value) => (
-                  <SelectItem key={value} value={value}>
-                    {docStatusColorMap[value].label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </>
-        }
-      />
-      <div className="flex items-center justify-between px-1">
-        <p className="text-[13px] text-muted-foreground">
-          Page {stack.length + 1}
-        </p>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="bg-card"
-            disabled={stack.length === 0}
-            onClick={() =>
-              navigate({
-                search: (prev) => {
-                  const prevStack = prev.stack ?? []
-                  return {
-                    ...prev,
-                    cursor: prevStack.at(-1) || undefined,
-                    stack: prevStack.slice(0, -1),
-                  }
-                },
-              })
-            }
-          >
-            <ChevronLeft className="size-4" />
-            <span className="hidden sm:inline">Previous</span>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="bg-card"
-            disabled={items.length < DOCUMENT_PAGE_SIZE}
-            onClick={() =>
-              navigate({
-                search: (prev) => ({
-                  ...prev,
-                  stack: [...(prev.stack ?? []), prev.cursor ?? ''],
-                  cursor: items[items.length - 1]!.id,
-                }),
-              })
-            }
-          >
-            <span className="hidden sm:inline">Next</span>
-            <ChevronRight className="size-4" />
-          </Button>
-        </div>
+            />
+          }
+        />
       </div>
     </div>
   )
 }
 
+// Mirrors the real page's shape (header, toolbar, table card with rows) so
+// the transition into loaded content doesn't reflow.
 function DocumentsSkeleton() {
   return (
     <div className="space-y-6">
-      <Skeleton className="h-9 w-48" />
-      <Skeleton className="h-96" />
+      <div className="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-44" />
+          <Skeleton className="h-4 w-80 max-w-full" />
+        </div>
+        <Skeleton className="h-9 w-36" />
+      </div>
+      <div className="space-y-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <Skeleton className="h-9 w-full sm:w-72" />
+          <Skeleton className="h-9 w-full sm:w-48" />
+        </div>
+        <div className="overflow-hidden rounded-lg border border-border bg-card">
+          <div className="h-11 border-b border-border bg-background" />
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3 border-b border-border px-4 py-3.5">
+              <Skeleton className="size-9 shrink-0 rounded-md" />
+              <div className="flex-1 space-y-1.5">
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-3 w-1/4" />
+              </div>
+              <Skeleton className="h-5 w-20 rounded-full" />
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }

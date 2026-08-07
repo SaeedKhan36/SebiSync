@@ -20,9 +20,21 @@ import {
 } from '#/components/ui/table'
 import { Checkbox } from '#/components/ui/checkbox'
 import { Input } from '#/components/ui/input'
+import { cn } from '#/lib/utils'
 import { useDebouncedValue } from '#/lib/useDebouncedValue'
 import { DataTablePagination } from './DataTablePagination'
 import { DataTableToolbar } from './DataTableToolbar'
+
+// Column defs are plain data, so per-column presentation (width, alignment,
+// responsive hiding) has nowhere to live except `meta`. Declaration-merged
+// here so column files get real typing on it rather than an `any` escape.
+declare module '@tanstack/react-table' {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface ColumnMeta<TData extends unknown, TValue> {
+    headerClassName?: string
+    cellClassName?: string
+  }
+}
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -39,13 +51,22 @@ interface DataTableProps<TData, TValue> {
   enableRowSelection?: boolean
   bulkActions?: (selectedRows: TData[], clearSelection: () => void) => React.ReactNode
   defaultSorting?: SortingState
+  // Opt out of the built-in client-side pagination for tables whose page is
+  // already a server page (document.list's cursor pagination). Without this
+  // the two fight: TanStack would slice the 20-row server page into 10-row
+  // client pages *and* render a second Prev/Next under the page's own.
+  manualPagination?: boolean
+  // Rendered in place of the built-in pagination footer — lets a server-
+  // paginated table keep the footer in the same slot/spacing as every other
+  // table instead of the page bolting a second row on underneath.
+  footer?: React.ReactNode
 }
 
 // Generic TanStack Table + shadcn Table wrapper. Per-domain code only
 // supplies column defs (features/<domain>/columns.tsx) and data — this
 // handles sorting UI, client-side pagination, and the empty-state slot.
 // Server-side pagination (document.list's cursor pagination) is layered on
-// top by the consuming page, not by this component.
+// top by the consuming page via `manualPagination` + `footer`.
 export function DataTable<TData, TValue>({
   columns,
   data,
@@ -58,6 +79,8 @@ export function DataTable<TData, TValue>({
   enableRowSelection,
   bulkActions,
   defaultSorting,
+  manualPagination,
+  footer,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>(defaultSorting ?? [])
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
@@ -100,7 +123,8 @@ export function DataTable<TData, TValue>({
     onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    getPaginationRowModel: manualPagination ? undefined : getPaginationRowModel(),
+    manualPagination,
     getFilteredRowModel: getSearchValue ? getFilteredRowModel() : undefined,
     globalFilterFn: getSearchValue
       ? (row, _columnId, filterValue: string) =>
@@ -148,7 +172,10 @@ export function DataTable<TData, TValue>({
                   {headerGroup.headers.map((header) => (
                     <TableHead
                       key={header.id}
-                      className="h-11 bg-background px-4 text-[11px] font-semibold tracking-[0.08em] text-muted-foreground uppercase"
+                      className={cn(
+                        'h-11 bg-background px-4 text-[11px] font-semibold tracking-[0.08em] text-muted-foreground uppercase',
+                        header.column.columnDef.meta?.headerClassName,
+                      )}
                     >
                       {header.isPlaceholder
                         ? null
@@ -185,12 +212,15 @@ export function DataTable<TData, TValue>({
                     role={onRowClick ? 'button' : undefined}
                     className={
                       onRowClick
-                        ? 'cursor-pointer border-border outline-none hover:bg-accent/50 focus-visible:bg-accent/50'
+                        ? 'group/row cursor-pointer border-border outline-none transition-colors hover:bg-accent/50 focus-visible:bg-accent/50'
                         : 'border-border hover:bg-accent/30'
                     }
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} className="px-4 py-3.5">
+                      <TableCell
+                        key={cell.id}
+                        className={cn('px-4 py-3.5', cell.column.columnDef.meta?.cellClassName)}
+                      >
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}
@@ -201,7 +231,7 @@ export function DataTable<TData, TValue>({
           </Table>
         </div>
       </div>
-      {!isEmpty && <DataTablePagination table={table} />}
+      {footer ?? (!isEmpty && !manualPagination && <DataTablePagination table={table} />)}
     </div>
   )
 }
