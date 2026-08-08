@@ -6,8 +6,7 @@ interface DetailFieldProps {
   className?: string
 }
 
-// The app-wide "label over value" primitive for detail pages — one place to
-// keep the small-caps label treatment consistent across every panel.
+
 export function DetailField({ label, children, className }: DetailFieldProps) {
   return (
     <div className={cn('space-y-1', className)}>

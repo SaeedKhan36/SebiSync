@@ -31,7 +31,7 @@ function AuthenticatedLayout() {
     if (isLoaded && !isSignedIn) {
       void navigate({ to: '/auth/login' })
     }
-  }, [isLoaded, isSignedIn, navigate])
+  }, [isLoaded, isSignedIn])
 
   if (!isLoaded) {
     return <div className="flex min-h-screen items-center justify-center">Loading...</div>

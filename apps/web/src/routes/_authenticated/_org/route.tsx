@@ -25,6 +25,8 @@ function OrgLayout() {
     ...trpc.client.listByIntermediary.queryOptions(),
     enabled: orgLoaded && !!organization,
     retry: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes - prevent excessive refetching
+    gcTime: 10 * 60 * 1000, // 10 minutes
   })
 
   const isProvisioned = provisionCheck.isSuccess
@@ -35,11 +37,10 @@ function OrgLayout() {
   useEffect(() => {
     if (isForbidden && !isOnboardingRoute) {
       void navigate({ to: ONBOARDING_PATH })
-    }
-    if (isProvisioned && isOnboardingRoute) {
+    } else if (isProvisioned && isOnboardingRoute) {
       void navigate({ to: '/dashboard' })
     }
-  }, [isForbidden, isProvisioned, isOnboardingRoute, navigate])
+  }, [isForbidden, isProvisioned, isOnboardingRoute])
 
   if (!orgLoaded) {
     return <div className="flex min-h-[50vh] items-center justify-center">Loading...</div>

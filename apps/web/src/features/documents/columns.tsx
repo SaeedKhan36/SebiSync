@@ -15,7 +15,11 @@ export const documentColumns: ColumnDef<DocumentListItem>[] = [
     id: 'title',
     header: 'Document',
     accessorFn: (row) => row.title,
-    meta: { cellClassName: 'max-w-[26rem]' },
+    // `w-full max-w-0` is the table trick that makes `truncate` work: the
+    // cell absorbs whatever width the fixed, nowrap columns leave over, and
+    // the zero max-width gives the inner text a real box to truncate
+    // against. A fixed max-w would clip long titles even on a wide screen.
+    meta: { headerClassName: 'w-full', cellClassName: 'w-full max-w-0' },
     cell: ({ row }) => (
       <div className="flex items-center gap-3">
         <span
