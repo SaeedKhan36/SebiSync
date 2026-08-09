@@ -24,11 +24,23 @@ Return JSON matching this shape exactly:
       "citationPage": number | null,
       "citationSection": string | null,
       "extractionConfidence": number,  // 0 to 1
-      "applicableCategoryCodes": string[], // e.g. ["IA"]
+      "applicableCategoryCodes": string[], // CLOSED LIST — see below. e.g. ["IA"]
       "sourceChunkIndexes": number[]   // indexes of the chunks below that this obligation cites
     }
   ]
-}`.trim();
+}
+
+applicableCategoryCodes MUST be drawn only from this closed list — any other
+value causes the obligation to be discarded downstream:
+  "IA"          Investment Adviser
+  "STOCKBROKER" Stockbroker / trading member
+  "DEPOSITORY"  Depository or depository participant
+  "AMC"         Asset management company / mutual fund
+  "RTA"         Registrar and transfer agent
+  "MII"         Market infrastructure institution (exchange, clearing corp)
+Use the closest match; never invent a new code. If an obligation applies to
+every intermediary, list every code that genuinely applies rather than
+inventing an "ALL" value.`.trim();
 
 const WORKED_EXAMPLES = `
 Example 1 (standing, per-client obligation):

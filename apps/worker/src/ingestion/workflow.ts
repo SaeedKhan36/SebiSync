@@ -3,12 +3,12 @@ import { writeAuditLog } from "../lib/audit";
 import { parseDocument } from "./docling-client";
 import { chunkDocument } from "./chunker";
 import { embedChunks, writeChunkEmbeddings } from "./embed";
-import { runExtractionAgent } from "../agents/extraction/graph";
+import { runExtractionAgent, type ExtractionSummary } from "../agents/extraction/graph";
 
 // Plain async function for hackathon scope — a single linear pipeline run
 // synchronously per document. If deployed behind Vercel Workflows, each
 // `await` below is where a durable step boundary would go.
-export async function runIngestionWorkflow(documentId: string): Promise<void> {
+export async function runIngestionWorkflow(documentId: string): Promise<ExtractionSummary> {
   const document = await prisma.regulatoryDocument.findUniqueOrThrow({ where: { id: documentId } });
 
   try {
@@ -24,12 +24,14 @@ export async function runIngestionWorkflow(documentId: string): Promise<void> {
       data: { status: "EXTRACTING" },
     });
 
-    await runExtractionAgent(documentId);
+    const summary = await runExtractionAgent(documentId);
 
     await prisma.regulatoryDocument.update({
       where: { id: documentId },
       data: { status: "EXTRACTED" },
     });
+
+    return summary;
   } catch (error) {
     await prisma.regulatoryDocument.update({ where: { id: documentId }, data: { status: "FAILED" } });
     await writeAuditLog({
