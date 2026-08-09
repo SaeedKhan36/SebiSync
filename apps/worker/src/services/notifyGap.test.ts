@@ -51,6 +51,36 @@ describe("notifyGap", () => {
     expect(body.to).toEqual(["owner@example.com"]);
   });
 
+  // WEB_ORIGIN doubles as the CORS allowlist, so in production it routinely
+  // holds several comma-separated origins. Using it verbatim produced a dead
+  // link in every notification email.
+  it("builds the gap link from the first origin when WEB_ORIGIN lists several", async () => {
+    vi.stubEnv("RESEND_API_KEY", "re_test");
+    vi.stubEnv("OWNER_EMAIL", "owner@example.com");
+    vi.stubEnv("WEB_ORIGIN", "https://app.example.com,https://preview.example.com");
+    vi.mocked(fetch).mockResolvedValue(new Response("{}", { status: 200 }));
+
+    await notifyGap(baseInput);
+
+    const [, options] = vi.mocked(fetch).mock.calls[0]!;
+    const body = JSON.parse(options!.body as string);
+    expect(body.html).toContain("https://app.example.com/gaps/gap_1");
+    expect(body.html).not.toContain("preview.example.com/gaps");
+  });
+
+  it("tolerates whitespace around the origins in WEB_ORIGIN", async () => {
+    vi.stubEnv("RESEND_API_KEY", "re_test");
+    vi.stubEnv("OWNER_EMAIL", "owner@example.com");
+    vi.stubEnv("WEB_ORIGIN", "  https://app.example.com , https://preview.example.com ");
+    vi.mocked(fetch).mockResolvedValue(new Response("{}", { status: 200 }));
+
+    await notifyGap(baseInput);
+
+    const [, options] = vi.mocked(fetch).mock.calls[0]!;
+    const body = JSON.parse(options!.body as string);
+    expect(body.html).toContain("https://app.example.com/gaps/gap_1");
+  });
+
   it("looks up Clerk org members and filters out ones with no email when OWNER_EMAIL is unset", async () => {
     vi.stubEnv("RESEND_API_KEY", "re_test");
     getOrganizationMembershipList.mockResolvedValue({

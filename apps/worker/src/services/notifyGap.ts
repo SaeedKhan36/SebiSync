@@ -47,7 +47,14 @@ export async function notifyGap(input: NotifyGapInput): Promise<number> {
     }
   }
 
-  const gapUrl = `${process.env.WEB_ORIGIN ?? "http://localhost:3000"}/gaps/${input.gap.id}`;
+  // WEB_ORIGIN is a comma-separated CORS allowlist, so it may legitimately hold
+  // several origins (production plus preview deployments). Taking it verbatim
+  // would produce "https://a.app,https://b.app/gaps/123" — a dead link in every
+  // notification email. The first entry is the canonical origin by convention.
+  const webOrigin = (process.env.WEB_ORIGIN ?? "http://localhost:3000")
+    .split(",")[0]!
+    .trim();
+  const gapUrl = `${webOrigin}/gaps/${input.gap.id}`;
   const gapTypeLabel = GAP_TYPE_LABELS[input.gap.gapType] ?? input.gap.gapType;
 
   const response = await fetch("https://api.resend.com/emails", {
