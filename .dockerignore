@@ -1,0 +1,46 @@
+# Build context exclusions for images built from the REPO ROOT
+# (currently apps/worker/Dockerfile — see render.yaml's dockerContext: .).
+#
+# The sidecar builds from services/docling-sidecar and uses its own
+# .dockerignore; this file does not apply there.
+#
+# The .env rules are the important ones and are a security control, not an
+# optimisation. The worker Dockerfile does `COPY packages ./packages` and
+# `COPY apps/worker ./apps/worker`, both of which would otherwise bake real
+# secrets — the Neon password, Gemini, Clerk, R2 and Resend keys — into an image
+# layer, where they survive in the published image whether or not a later layer
+# deletes them. Secrets reach the container through Render's environment, never
+# through the build context.
+#
+# ".env.example" is deliberately NOT excluded: the pattern matches the exact
+# name ".env", and shipping the documented template costs nothing.
+
+**/.env
+**/.env.local
+**/.env.*.local
+
+# Installed inside the image by `bun install`. Copying the host's copy would be
+# slower and platform-wrong — native binaries built for Windows/macOS do not run
+# on the linux image.
+**/node_modules
+
+# Built inside the image. Excluding the host's output prevents a stale local
+# build from silently shadowing the real one.
+**/dist
+**/.output
+
+# Local caches and run artefacts.
+**/.turbo
+**/.runs
+**/*.log
+.vercel
+
+# Not needed by the worker image.
+.git
+.gitignore
+.github
+docs
+services
+apps/web/src
+apps/web/public
+**/*.test.ts

@@ -149,9 +149,18 @@ Verified locally:
   sign-in with no console errors
 - `bun run typecheck` clean across 5 packages; full test suite green
 
+Verified without a Docker daemon:
+
+- Every `COPY` source path in both Dockerfiles exists
+- `prisma generate` succeeds with `DATABASE_URL` unset, which is the state it
+  runs in inside the image
+- `.dockerignore` excludes all four real `.env` files while keeping the
+  `.env.example` templates
+
 **Not verified: the two Dockerfiles actually build.** The Docker daemon was not
-running on the machine where this was set up, so neither image has been built
-even once. Do this before you rely on it:
+running on the machine where this was set up (its backend service needs
+Administrator to start), so neither image has been built even once. Do this
+before you rely on them:
 
 ```bash
 docker build -f apps/worker/Dockerfile -t sebisync-worker .
@@ -160,3 +169,14 @@ docker build -f services/docling-sidecar/Dockerfile -t sebisync-docling services
 
 The worker build must run from the **repo root** — it needs `packages/` and
 `bun.lock` to resolve the workspace graph.
+
+Then confirm no secret was captured in a layer:
+
+```bash
+docker run --rm sebisync-worker sh -c "ls -a /app/packages/db /app/apps/worker | grep -c '^\.env$' || echo 'no .env in image'"
+```
+
+The root `.dockerignore` is what prevents that, and it is a security control
+rather than a build optimisation: `COPY packages` and `COPY apps/worker` would
+otherwise bake the Neon password and the Gemini, Clerk, R2 and Resend keys into
+a published image layer, where they persist even if a later layer removes them.
