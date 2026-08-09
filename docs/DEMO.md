@@ -18,6 +18,20 @@ anywhere. It also creates one tenant per category (Alpha Wealth Advisors / IA, M
 Securities / STOCKBROKER); without a stockbroker tenant, fan-out for stockbroker obligations
 succeeds and creates nothing.
 
+Then check that no fabricated document is claiming to be a real SEBI circular:
+
+```bash
+cd apps/worker && bun run relabel-mocks            # report only
+cd apps/worker && bun run relabel-mocks -- --apply # fix what it finds
+```
+
+A demo document once sat in the database titled "Master Circular for Investment Advisers"
+carrying the genuine circular number, while its stored object was a mock PDF. That collides
+with the real corpus at ingest time, and — worse — misrepresents fabricated content as a real
+regulatory source, which is the one claim this product cannot afford to get wrong. The script
+relabels rather than deletes, because those rows carry real checklist items, evidence and
+gaps the demo depends on.
+
 Start the Docling sidecar (`services/docling-sidecar`, port 8000), the worker
 (`cd apps/worker && bun run dev`, port 8787) and the web app (`cd apps/web && bun run dev`,
 port 3000).
