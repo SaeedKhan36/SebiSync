@@ -1,12 +1,15 @@
 import { prisma } from "@sebi/db";
 import { writeAuditLog } from "../../../lib/audit";
-import type { ExtractionStateType } from "../state";
+import type { DroppedCandidate, ExtractionStateType } from "../state";
 
 // Creates a fresh DRAFT Obligation + ObligationSourceChunk rows for every
-// validated, applicability-resolved candidate. No NEW/MODIFIED/UNCHANGED
-// branching — every extraction run persists new DRAFT obligations.
+// validated, applicability-resolved candidate. Every extraction run persists
+// new DRAFT obligations; deciding whether a draft is genuinely new or amends
+// an already-published one is a separate, human-gated step
+// (services/reconcileSupersession.ts), run after the graph finishes.
 export async function persist(state: ExtractionStateType): Promise<Partial<ExtractionStateType>> {
   const errors: string[] = [];
+  const droppedCandidates: DroppedCandidate[] = [];
 
   for (const { candidate, categoryIds } of state.applicabilityResolved) {
     try {
@@ -51,11 +54,17 @@ export async function persist(state: ExtractionStateType): Promise<Partial<Extra
         obligationId: obligation.id,
       });
     } catch (error) {
-      errors.push(
-        `Failed to persist candidate "${candidate.code}": ${error instanceof Error ? error.message : String(error)}`,
-      );
+      const reason = error instanceof Error ? error.message : String(error);
+      droppedCandidates.push({
+        code: candidate.code,
+        title: candidate.title,
+        citationText: candidate.citationText,
+        stage: "PERSIST",
+        reason,
+      });
+      errors.push(`Failed to persist candidate "${candidate.code}": ${reason}`);
     }
   }
 
-  return { errors };
+  return { droppedCandidates, errors };
 }

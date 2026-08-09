@@ -28,6 +28,8 @@ dotenv.config({ path: path.resolve(import.meta.dirname, "../../.env") });
 import { prisma } from "@sebi/db";
 import { uploadObject } from "../storage/r2";
 import { runIngestionWorkflow } from "../ingestion/workflow";
+import { reconcileSupersession } from "../services/reconcileSupersession";
+import { writeRunReport } from "./runReport";
 
 interface Args {
   file: string;
@@ -35,6 +37,11 @@ interface Args {
   circular: string;
   issued: string;
   url: string;
+  // Optional: the RegulatoryDocument id this circular amends. Turns the run
+  // into an amendment — after extraction, every DRAFT is matched against the
+  // prior circular's PUBLISHED obligations and a supersession mapping is
+  // proposed for human review.
+  supersedes?: string;
 }
 
 function parseArgs(): Args {
@@ -62,7 +69,8 @@ function parseArgs(): Args {
         '    --title "Master Circular for Investment Advisers" \\',
         '    --circular "SEBI/HO/MIRSD/.../2024/XX" \\',
         "    --issued 2024-05-15 \\",
-        '    --url "https://www.sebi.gov.in/..."',
+        '    --url "https://www.sebi.gov.in/..." \\',
+        "    [--supersedes <documentId>]   # if this circular amends an earlier one",
       ].join("\n"),
     );
     process.exit(1);
@@ -112,6 +120,18 @@ async function main() {
   }
   console.log(`Categories available: ${categories.map((c) => c.code).join(", ")}`);
 
+  if (args.supersedes) {
+    const prior = await prisma.regulatoryDocument.findUnique({
+      where: { id: args.supersedes },
+      select: { id: true, title: true, circularNumber: true },
+    });
+    if (!prior) {
+      console.error(`--supersedes: no RegulatoryDocument with id "${args.supersedes}"`);
+      process.exit(1);
+    }
+    console.log(`Amends: ${prior.title} (${prior.circularNumber})`);
+  }
+
   const document = await prisma.regulatoryDocument.create({
     data: {
       title: args.title,
@@ -120,6 +140,7 @@ async function main() {
       sourceUrl: args.url,
       r2ObjectKey: "",
       status: "UPLOADED",
+      supersedesId: args.supersedes,
     },
   });
 
@@ -154,6 +175,15 @@ async function main() {
       `(dropped ${summary.droppedByCitation}, ${pct(summary.droppedByCitation, summary.candidates)})`,
   );
   console.log(
+    `    ├─ exact quote           ${summary.citationExact}  ` +
+      `(${pct(summary.citationExact, summary.citationValid)} of validated)`,
+  );
+  console.log(
+    `    └─ matched after         ${summary.citationNormalized}  ` +
+      `(${pct(summary.citationNormalized, summary.citationValid)} of validated)\n` +
+      `       typographic folding`,
+  );
+  console.log(
     `  survived classification    ${summary.applicabilityResolved}  ` +
       `(dropped ${summary.droppedByApplicability}, ${pct(summary.droppedByApplicability, summary.citationValid)})`,
   );
@@ -167,10 +197,17 @@ async function main() {
 
   if (summary.droppedByCitation > 0) {
     console.log(
-      `\n⚠ ${summary.droppedByCitation} candidate(s) failed the verbatim citation check. ` +
-        `That guard is exact-match only (validateCitation.ts), so PDF artefacts — ligatures,\n` +
-        `  hyphenation, broken line-wraps — can drop CORRECT obligations. If this number is\n` +
-        `  large, the model is probably fine and the matcher needs normalising.`,
+      `\n⚠ ${summary.droppedByCitation} candidate(s) failed the verbatim citation check.\n` +
+        `  The guard folds typography (ligatures, curly quotes, soft/line-break hyphens) but\n` +
+        `  never wording, so these are quotes that genuinely do not appear in the cited chunk —\n` +
+        `  i.e. the model paraphrased or hallucinated. Inspect them in the run report below.`,
+    );
+  }
+  if (summary.citationNormalized > 0) {
+    console.log(
+      `\nℹ ${summary.citationNormalized} citation(s) matched only after typographic normalisation.\n` +
+        `  Expected for real SEBI PDFs. If this share is very high, check citationMatch.ts is not\n` +
+        `  folding more than it should — the trust claim rests on that guard staying strict.`,
     );
   }
   if (summary.droppedByApplicability > 0) {
@@ -185,6 +222,32 @@ async function main() {
     for (const e of summary.errors.slice(0, 25)) console.log(`  • ${e}`);
     if (summary.errors.length > 25) console.log(`  … and ${summary.errors.length - 25} more`);
   }
+
+  const reconciliation = await reconcileSupersession(document.id);
+  if (reconciliation) {
+    console.log(`\n─── Amendment reconciliation ───`);
+    console.log(`  proposals for review       ${reconciliation.proposed}`);
+    console.log(`    amends an existing       ${reconciliation.amends}`);
+    console.log(`    carried forward          ${reconciliation.unchanged}`);
+    console.log(`    genuinely new            ${reconciliation.new}`);
+    console.log(
+      `\n  Nothing has been superseded yet. Confirm the mapping at /obligations/review,\n` +
+        `  then publish — the prior obligation is retired at that moment, not before.`,
+    );
+  }
+
+  const reportPath = await writeRunReport(document.id, {
+    documentId: document.id,
+    title: args.title,
+    circularNumber: args.circular,
+    file: fileName,
+    ingestedAt: new Date().toISOString(),
+    elapsedSec: Number(elapsedSec),
+    persisted,
+    summary,
+  });
+  console.log(`\nRun report written to ${reportPath}`);
+  console.log(`  (benchmarkExtraction reads this to attribute misses to the stage that dropped them)`);
 
   console.log(`\nNext: review the DRAFT obligations at /obligations/review, then publish to fan out.`);
 }

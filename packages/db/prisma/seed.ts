@@ -20,6 +20,39 @@ const CATEGORIES = [
   { code: "MII", name: "Market Infrastructure Institution" },
 ] as const;
 
+// One tenant per corpus we ingest. propagateObligation fans out by CATEGORY,
+// so an obligation tagged STOCKBROKER publishes to nobody unless a
+// stockbroker intermediary exists — the fan-out succeeds, creates zero
+// checklist items, and the dashboard stays empty with no error anywhere.
+// Seeding both categories is what makes a two-corpus demo show anything.
+const TENANTS = [
+  {
+    name: "Alpha Wealth Advisors",
+    categoryCode: "IA",
+    clients: ["Asha Rao", "Vikram Mehta", "Priya Nair", "Rohan Gupta", "Sneha Iyer"],
+  },
+  {
+    name: "Meridian Securities",
+    categoryCode: "STOCKBROKER",
+    clients: ["Kabir Shah", "Lakshmi Menon", "Arjun Desai", "Farah Qureshi", "Ninad Kulkarni"],
+  },
+] as const;
+
+// Intermediary and Client have no natural unique key in the schema (only id
+// and the nullable clerkOrgId), so `upsert` isn't available without adding a
+// compound unique constraint that real-world duplicate names would then
+// forbid. find-then-create gives the same idempotence — re-running the seed
+// tops up missing rows instead of duplicating the whole tenant book.
+async function ensureIntermediary(name: string, categoryId: string) {
+  const existing = await prisma.intermediary.findFirst({ where: { name, categoryId } });
+  return existing ?? prisma.intermediary.create({ data: { name, categoryId } });
+}
+
+async function ensureClient(name: string, intermediaryId: string) {
+  const existing = await prisma.client.findFirst({ where: { name, intermediaryId } });
+  return existing ?? prisma.client.create({ data: { name, intermediaryId } });
+}
+
 async function main() {
   const categories = await Promise.all(
     CATEGORIES.map((data) =>
@@ -30,24 +63,25 @@ async function main() {
       }),
     ),
   );
-
-  const category = categories.find((c) => c.code === "IA")!;
-
-  const intermediary = await prisma.intermediary.create({
-    data: { name: "Alpha Wealth Advisors", categoryId: category.id },
-  });
-
-  const clients = await Promise.all(
-    ["Asha Rao", "Vikram Mehta", "Priya Nair", "Rohan Gupta", "Sneha Iyer"].map((name) =>
-      prisma.client.create({ data: { name, intermediaryId: intermediary.id } }),
-    ),
-  );
+  const categoryByCode = new Map(categories.map((c) => [c.code, c]));
 
   console.log("Seeded:");
-  console.log(`  IntermediaryCategory rows = ${categories.length} (${CATEGORIES.map((c) => c.code).join(", ")})`);
-  console.log(`  IntermediaryCategory.id = ${category.id} (IA)`);
-  console.log(`  Intermediary.id        = ${intermediary.id}`);
-  clients.forEach((c) => console.log(`  Client.id              = ${c.id} (${c.name})`));
+  console.log(
+    `  IntermediaryCategory rows = ${categories.length} (${CATEGORIES.map((c) => c.code).join(", ")})`,
+  );
+
+  for (const tenant of TENANTS) {
+    const category = categoryByCode.get(tenant.categoryCode)!;
+    const intermediary = await ensureIntermediary(tenant.name, category.id);
+    const clients = await Promise.all(
+      tenant.clients.map((name) => ensureClient(name, intermediary.id)),
+    );
+
+    console.log(`\n  ${tenant.name} [${tenant.categoryCode}]`);
+    console.log(`    IntermediaryCategory.id = ${category.id}`);
+    console.log(`    Intermediary.id         = ${intermediary.id}`);
+    clients.forEach((c) => console.log(`    Client.id               = ${c.id} (${c.name})`));
+  }
 }
 
 main()

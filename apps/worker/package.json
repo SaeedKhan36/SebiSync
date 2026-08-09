@@ -8,6 +8,8 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "ingest": "tsx src/scripts/ingestCircular.ts",
+    "benchmark": "tsx src/scripts/benchmarkExtraction.ts",
+    "demo:seed": "tsx src/scripts/seedDemoScenario.ts",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

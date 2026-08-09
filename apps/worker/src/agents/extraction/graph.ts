@@ -1,5 +1,5 @@
 import { StateGraph } from "@langchain/langgraph";
-import { ExtractionState } from "./state";
+import { ExtractionState, type DroppedCandidate } from "./state";
 import { loadContext } from "./nodes/loadContext";
 import { extractObligations } from "./nodes/extractObligations";
 import { validateCitation } from "./nodes/validateCitation";
@@ -31,9 +31,19 @@ export interface ExtractionSummary {
   chunks: number;
   candidates: number;
   citationValid: number;
+  // Split of citationValid by how hard the matcher had to work. A healthy run
+  // is mostly EXACT; a large normalised share means the PDF is full of
+  // typographic artefacts (or that the normaliser has been loosened too far),
+  // and either way it should be a visible number rather than an assumption.
+  citationExact: number;
+  citationNormalized: number;
   droppedByCitation: number;
   applicabilityResolved: number;
   droppedByApplicability: number;
+  // Every candidate the pipeline discarded, with the stage that discarded it.
+  // Consumed by scripts/benchmarkExtraction.ts to attribute a missed
+  // ground-truth obligation to a specific stage instead of "not found".
+  droppedCandidates: DroppedCandidate[];
   errors: string[];
 }
 
@@ -47,9 +57,12 @@ export async function runExtractionAgent(documentId: string): Promise<Extraction
     chunks: result.chunks.length,
     candidates: result.candidates.length,
     citationValid: result.validatedCandidates.length,
+    citationExact: result.validatedCandidates.filter((v) => v.matchMode === "EXACT").length,
+    citationNormalized: result.validatedCandidates.filter((v) => v.matchMode === "NORMALIZED").length,
     droppedByCitation: result.candidates.length - result.validatedCandidates.length,
     applicabilityResolved: result.applicabilityResolved.length,
     droppedByApplicability: result.validatedCandidates.length - result.applicabilityResolved.length,
+    droppedCandidates: result.droppedCandidates,
     errors: result.errors,
   };
 }

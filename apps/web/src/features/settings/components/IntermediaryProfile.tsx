@@ -5,8 +5,7 @@ import type { IntermediaryDetail } from '#/features/settings/hooks/useIntermedia
 
 // Presentational: takes the intermediary as a prop rather than calling
 // useIntermediary() itself, so it can be rendered outside an authenticated
-// tRPC context (see routes/preview-ui.tsx) — same split the dashboard
-// components already use.
+// tRPC context — same split the dashboard components already use.
 
 function Detail({ label, value }: { label: string; value: React.ReactNode }) {
   return (

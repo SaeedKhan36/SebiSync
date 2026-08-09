@@ -1,0 +1,3 @@
+# Per-run ingestion reports (scripts/runReport.ts). Keyed by RegulatoryDocument
+# id, so they only mean anything against the database that produced them.
+.runs

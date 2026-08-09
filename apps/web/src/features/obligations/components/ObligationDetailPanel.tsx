@@ -1,4 +1,6 @@
-import { Gavel, Loader2 } from 'lucide-react'
+import { Gavel, GitBranch, Loader2 } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
+import type { ObligationStatus } from '@sebi/schemas'
 import { Card, CardContent, CardHeader, CardTitle } from '#/components/ui/card'
 import { CitationPanel } from '#/components/CitationPanel'
 import { DetailField } from '#/components/DetailField'
@@ -67,12 +69,89 @@ export function ObligationDetailPanel({ obligation }: { obligation: ObligationDe
         </CardContent>
       </Card>
 
+      <SupersessionLineage obligation={obligation} />
+
       <CitationPanel
         citationText={obligation.citationText}
         citationPage={obligation.citationPage}
         citationSection={obligation.citationSection}
         sourceChunks={sourceChunks}
       />
+    </div>
+  )
+}
+
+// Amendment lineage, in both directions. Rendered only when there is lineage
+// to show, so an obligation from a first-issue circular carries no empty
+// chrome. The pending case matters as much as the settled one: a DRAFT with a
+// confirmed mapping is about to retire something on publish, and the reviewer
+// looking at this panel is the person who should know that.
+function SupersessionLineage({ obligation }: { obligation: ObligationDetail }) {
+  const pending =
+    obligation.status === 'DRAFT' ? (obligation.proposalAsNew?.priorObligation ?? null) : null
+  const replaces = obligation.supersedes
+  const replacedBy = obligation.supersededBy
+
+  if (!replaces && !replacedBy && !pending) return null
+
+  return (
+    <Card className="gap-3">
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-[15px] font-semibold">
+          <GitBranch className="size-4 shrink-0 text-orange-600 dark:text-orange-400" />
+          Amendment lineage
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        {replacedBy && (
+          <LineageRow
+            label="Superseded by"
+            obligation={replacedBy}
+            note="This requirement is no longer in force. Its checklist items were closed when the replacement was published."
+          />
+        )}
+        {replaces && <LineageRow label="Replaces" obligation={replaces} />}
+        {!replaces && pending && (
+          <LineageRow
+            label="Will replace, on publish"
+            obligation={pending}
+            note="Mapping confirmed but not yet applied — publishing this draft retires the obligation above."
+          />
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+interface LineageTarget {
+  id: string
+  code: string
+  title: string
+  status: ObligationStatus
+}
+
+function LineageRow({
+  label,
+  obligation,
+  note,
+}: {
+  label: string
+  obligation: LineageTarget
+  note?: string
+}) {
+  return (
+    <div className="space-y-1 rounded-md border border-border p-3">
+      <p className="text-muted-foreground text-xs font-medium uppercase tracking-wide">{label}</p>
+      <Link
+        to="/obligations/$obligationId"
+        params={{ obligationId: obligation.id }}
+        className="flex flex-wrap items-center gap-2 text-sm font-medium hover:underline"
+      >
+        <span className="font-mono text-xs">{obligation.code}</span>
+        {obligation.title}
+        <StatusBadge value={obligation.status} map={obligationStatusColorMap} />
+      </Link>
+      {note && <p className="text-muted-foreground text-xs">{note}</p>}
     </div>
   )
 }
