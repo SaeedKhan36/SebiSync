@@ -18,10 +18,28 @@ const app = new Hono();
 
 // The frontend (apps/web) runs on a different origin/port, so requests need
 // CORS + credentials to carry the Clerk session/auth header cross-origin.
+// WEB_ORIGIN accepts a comma-separated list so preview deployments can be
+// added without a code change.
+const allowedOrigins = (process.env.WEB_ORIGIN ?? "http://localhost:3000")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+// Vite silently shifts to the next free port when its configured one is taken
+// (a stale dev server, another project), which turns every tRPC call into an
+// opaque "Failed to fetch" once the origin no longer matches. Outside
+// production, trust any loopback port so that mismatch can't happen.
+const allowAnyLoopbackOrigin = process.env.NODE_ENV !== "production";
+const LOOPBACK_ORIGIN = /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\]):\d+$/;
+
 app.use(
   "*",
   cors({
-    origin: process.env.WEB_ORIGIN ?? "http://localhost:3000",
+    origin: (origin) => {
+      if (allowedOrigins.includes(origin)) return origin;
+      if (allowAnyLoopbackOrigin && LOOPBACK_ORIGIN.test(origin)) return origin;
+      return null;
+    },
     credentials: true,
     allowHeaders: ["Content-Type", "Authorization"],
   }),
