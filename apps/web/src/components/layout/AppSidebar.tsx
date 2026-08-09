@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useRouterState } from '@tanstack/react-router'
 import {
   AlertTriangle,
   FileText,
@@ -23,10 +23,15 @@ const NAV_ITEMS = [
   { label: 'Obligations', to: '/obligations', icon: Gavel },
 ] as const
 
+// Settings spans several sibling pages (/settings/intermediary,
+// /settings/organization), so it matches on the section prefix rather than on
+// the one URL it links to — otherwise the entry unhighlights the moment you
+// switch tabs inside Settings.
 const SETTINGS_ITEM = {
   label: 'Settings',
-  to: '/settings/organization',
+  to: '/settings/intermediary',
   icon: Settings,
+  matchPrefix: '/settings',
 } as const
 
 function NavItem({
@@ -34,12 +39,19 @@ function NavItem({
   to,
   icon: Icon,
   onNavigate,
+  matchPrefix,
 }: {
   label: string
   to: (typeof NAV_ITEMS)[number]['to'] | typeof SETTINGS_ITEM.to
   icon: typeof LayoutDashboard
   onNavigate?: () => void
+  matchPrefix?: string
 }) {
+  const pathname = useRouterState({ select: (state) => state.location.pathname })
+  // Prefix match so detail routes (/gaps/$gapId) keep their section lit.
+  const prefix = matchPrefix ?? to
+  const isActive = pathname === prefix || pathname.startsWith(`${prefix}/`)
+
   return (
     <Link
       to={to}
@@ -50,14 +62,16 @@ function NavItem({
         'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
         // Active: card lifted off the paper sidebar, primary ink, and a
         // short accent bar hugging the left edge.
-        'data-[status=active]:bg-card data-[status=active]:text-primary',
-        'data-[status=active]:shadow-[0_1px_2px_rgba(28,25,23,0.06)]',
-        'data-[status=active]:ring-1 data-[status=active]:ring-border',
+        isActive &&
+          'bg-card text-primary shadow-[0_1px_2px_rgba(28,25,23,0.06)] ring-1 ring-border',
       )}
     >
       <span
         aria-hidden
-        className="absolute top-1/2 left-0 hidden h-4 w-0.5 -translate-y-1/2 rounded-full bg-primary group-data-[status=active]:block"
+        className={cn(
+          'absolute top-1/2 left-0 h-4 w-0.5 -translate-y-1/2 rounded-full bg-primary',
+          isActive ? 'block' : 'hidden',
+        )}
       />
       <Icon className="size-4 shrink-0" strokeWidth={1.9} />
       {label}
