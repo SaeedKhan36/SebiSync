@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { evaluateGap, GRACE_PERIOD_DAYS } from "./gapRules";
+import { evaluateGap, GRACE_PERIOD_DAYS, MISSING_EVIDENCE_ESCALATION_DAYS } from "./gapRules";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -43,11 +43,25 @@ describe("evaluateGap", () => {
     expect(result).toBeNull();
   });
 
-  it("flags MISSING_EVIDENCE/MEDIUM for a no-due-date item older than the grace period", () => {
+  it("flags MISSING_EVIDENCE/LOW just past the grace period", () => {
     const now = new Date("2026-01-01T00:00:00Z");
     const createdAt = new Date(now.getTime() - (GRACE_PERIOD_DAYS + 1) * DAY_MS);
     const result = evaluateGap({ dueDate: null, createdAt, hasEvidence: false }, now);
+    expect(result).toEqual({ gapType: "MISSING_EVIDENCE", severity: "LOW" });
+  });
+
+  it("escalates MISSING_EVIDENCE to MEDIUM once it is long overdue", () => {
+    const now = new Date("2026-01-01T00:00:00Z");
+    const createdAt = new Date(now.getTime() - (MISSING_EVIDENCE_ESCALATION_DAYS + 1) * DAY_MS);
+    const result = evaluateGap({ dueDate: null, createdAt, hasEvidence: false }, now);
     expect(result).toEqual({ gapType: "MISSING_EVIDENCE", severity: "MEDIUM" });
+  });
+
+  it("stays LOW exactly at the escalation boundary", () => {
+    const now = new Date("2026-01-01T00:00:00Z");
+    const createdAt = new Date(now.getTime() - MISSING_EVIDENCE_ESCALATION_DAYS * DAY_MS);
+    const result = evaluateGap({ dueDate: null, createdAt, hasEvidence: false }, now);
+    expect(result).toEqual({ gapType: "MISSING_EVIDENCE", severity: "LOW" });
   });
 
   it("flags STALE_EVIDENCE/MEDIUM when evidence exists but has expired", () => {

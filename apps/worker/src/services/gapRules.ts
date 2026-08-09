@@ -1,5 +1,12 @@
 export const GRACE_PERIOD_DAYS = 30;
 
+// A deadline-less obligation with no evidence is not equally urgent forever.
+// Just past the grace period it is a nudge; still open months later it is a
+// genuine compliance failure, and flattening both to MEDIUM buries the second
+// among the first. Set at twice the grace period so the escalation point is
+// derived from the same tolerance rather than being a second magic number.
+export const MISSING_EVIDENCE_ESCALATION_DAYS = GRACE_PERIOD_DAYS * 2;
+
 export type GapType = "PAST_DEADLINE" | "MISSING_EVIDENCE" | "STALE_EVIDENCE";
 export type GapSeverity = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 
@@ -29,7 +36,10 @@ export function evaluateGap(item: GapEvaluationInput, now: Date): GapEvaluation 
   if (!item.dueDate && !item.hasEvidence) {
     const ageDays = (now.getTime() - item.createdAt.getTime()) / (24 * 60 * 60 * 1000);
     if (ageDays > GRACE_PERIOD_DAYS) {
-      return { gapType: "MISSING_EVIDENCE", severity: "MEDIUM" };
+      return {
+        gapType: "MISSING_EVIDENCE",
+        severity: ageDays > MISSING_EVIDENCE_ESCALATION_DAYS ? "MEDIUM" : "LOW",
+      };
     }
     return null;
   }

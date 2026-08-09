@@ -86,5 +86,9 @@ This backdates checklist items and attaches evidence, then calls the real `detec
 It never writes a `ComplianceGap` row directly — every finding on the dashboard is derived
 by the same engine that runs in production. Pass `--notify` only if you want the emails.
 
-Reachable severities are MEDIUM, HIGH and CRITICAL. `evaluateGap` has no rule that returns
-LOW, so a LOW gap cannot appear without inventing one, and the seeder will not.
+It is safe to re-run: each run first clears the evidence records it created previously, so
+the resulting posture is identical every time rather than drifting.
+
+Expect roughly: 3 LOW and 2 MEDIUM missing-evidence, 3 stale-evidence MEDIUM, 2 HIGH and
+2 CRITICAL past-deadline, 5 compliant, 2 healthy upcoming — all four severity bands, none
+of them fabricated.

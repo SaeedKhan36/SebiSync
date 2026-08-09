@@ -28,7 +28,11 @@ dotenv.config({ path: path.resolve(import.meta.dirname, "../../.env") });
 
 import { prisma } from "@sebi/db";
 import { detectGaps } from "../services/detectGaps";
-import { GRACE_PERIOD_DAYS } from "../services/gapRules";
+import { GRACE_PERIOD_DAYS, MISSING_EVIDENCE_ESCALATION_DAYS } from "../services/gapRules";
+
+// Marks every EvidenceRecord this script creates, so a re-run can undo its own
+// previous output without ever touching evidence a real user submitted.
+const SEEDER_USER_ID = "demo-scenario-seeder";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const ago = (days: number) => new Date(Date.now() - days * DAY_MS);
@@ -39,13 +43,14 @@ const ahead = (days: number) => new Date(Date.now() + days * DAY_MS);
 // rules change and the demo stops showing what it claims, the mismatch is
 // obvious here rather than mysterious on the dashboard.
 //
-// Note there is no LOW bucket: evaluateGap currently returns MEDIUM, HIGH or
-// CRITICAL only, and inventing a LOW gap would mean writing a ComplianceGap
-// row by hand — exactly what this script refuses to do.
+// Between them the buckets reach every severity the engine can return, which
+// is the point — the dashboard's four severity bands are all demonstrated by
+// real detections rather than by any of them being written in by hand.
 type BucketName =
   | "compliant"
   | "staleEvidence"
-  | "missingEvidence"
+  | "missingEvidenceLow"
+  | "missingEvidenceMedium"
   | "pastDeadlineHigh"
   | "pastDeadlineCritical"
   | "upcoming";
@@ -80,10 +85,17 @@ const BUCKETS: Bucket[] = [
     evidenceValidUntil: ago(20),
   },
   {
-    name: "missingEvidence",
-    expected: `MISSING_EVIDENCE / MEDIUM — no deadline, no evidence, older than the ${GRACE_PERIOD_DAYS}-day grace period`,
+    name: "missingEvidenceLow",
+    expected: `MISSING_EVIDENCE / LOW — no evidence, just past the ${GRACE_PERIOD_DAYS}-day grace period`,
     needsEvidence: false,
-    createdAt: ago(GRACE_PERIOD_DAYS + 30),
+    createdAt: ago(GRACE_PERIOD_DAYS + 10),
+    dueDate: null,
+  },
+  {
+    name: "missingEvidenceMedium",
+    expected: `MISSING_EVIDENCE / MEDIUM — no evidence, past the ${MISSING_EVIDENCE_ESCALATION_DAYS}-day escalation point`,
+    needsEvidence: false,
+    createdAt: ago(MISSING_EVIDENCE_ESCALATION_DAYS + 40),
     dueDate: null,
   },
   {
@@ -137,6 +149,19 @@ async function main() {
     include: { category: { select: { code: true } } },
     orderBy: { createdAt: "asc" },
   });
+
+  // Clear this script's own past output first, so every run starts from the
+  // same baseline and produces the same posture. Without it, evidence created
+  // by run N pushes those items into the evidence-requiring buckets on run
+  // N+1, and the mix drifts towards STALE_EVIDENCE a little more each time.
+  // Scoped strictly to rows this seeder authored — real evidence submitted
+  // through the app is never touched.
+  if (!dryRun) {
+    const cleared = await prisma.evidenceRecord.deleteMany({
+      where: { submittedByUserId: SEEDER_USER_ID },
+    });
+    if (cleared.count > 0) console.log(`Cleared ${cleared.count} evidence record(s) from a previous seeding run.`);
+  }
 
   const items = await prisma.complianceChecklistItem.findMany({
     include: {
@@ -217,7 +242,7 @@ async function main() {
           clientId: item.clientId,
           evidenceType: "DOCUMENT",
           description: `Demo evidence for ${item.obligation.code}`,
-          submittedByUserId: "demo-scenario-seeder",
+          submittedByUserId: SEEDER_USER_ID,
           submittedAt: bucket.createdAt,
           validUntil: bucket.evidenceValidUntil,
         },
