@@ -212,7 +212,11 @@ export function DataTable<TData, TValue>({
                     role={onRowClick ? 'button' : undefined}
                     className={
                       onRowClick
-                        ? 'group/row cursor-pointer border-border outline-none transition-colors hover:bg-accent/50 focus-visible:bg-accent/50'
+                        ? // A background tint alone is too weak a focus
+                          // indicator for a keyboard-activatable row — pair it
+                          // with an inset ring so the focused row is
+                          // unambiguous against both themes.
+                          'group/row cursor-pointer border-border outline-none transition-colors hover:bg-accent/50 focus-visible:bg-accent/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset'
                         : 'border-border hover:bg-accent/30'
                     }
                   >
