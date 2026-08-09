@@ -17,7 +17,7 @@ export function TriggerEventInfo({ triggerEvent }: TriggerEventInfoProps) {
     <Card className="gap-4">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-[15px] font-semibold">
-          <Zap className="size-4 text-[#3730a3]" />
+          <Zap className="size-4 text-[#3730a3] dark:text-indigo-300" />
           Trigger event
         </CardTitle>
       </CardHeader>

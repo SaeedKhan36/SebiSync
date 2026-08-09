@@ -40,13 +40,13 @@ export function CitationPanel({
     <Card className="gap-4">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-[15px] font-semibold">
-          <Quote className="size-4 text-[#3730a3]" />
+          <Quote className="size-4 text-[#3730a3] dark:text-indigo-300" />
           Source citation
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
         <figure className="space-y-2.5">
-          <blockquote className="rounded-r-md border-l-2 border-[#3730a3] bg-[#eef2ff]/50 py-2.5 pr-3 pl-4 font-serif text-[15px] leading-relaxed text-[#312e81] italic">
+          <blockquote className="rounded-r-md border-l-2 border-[#3730a3] dark:border-indigo-400 bg-[#eef2ff]/50 dark:bg-indigo-950/40 py-2.5 pr-3 pl-4 font-serif text-[15px] leading-relaxed text-[#312e81] dark:text-indigo-200 italic">
             {citationText}
           </blockquote>
           <figcaption>

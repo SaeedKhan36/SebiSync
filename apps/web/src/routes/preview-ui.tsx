@@ -10,6 +10,9 @@ import { AppSidebar } from '#/components/layout/AppSidebar'
 import { PageHeader } from '#/components/layout/PageHeader'
 import { SettingsTabs } from '#/components/layout/SettingsTabs'
 import { EmptyState } from '#/components/EmptyState'
+import { CitationPanel } from '#/components/CitationPanel'
+import { AuditTimeline } from '#/components/AuditTimeline'
+import { EvidenceList } from '#/features/evidence/components/EvidenceList'
 import { Skeleton } from '#/components/ui/skeleton'
 import { Button } from '#/components/ui/button'
 import { IntermediaryProfile } from '#/features/settings/components/IntermediaryProfile'
@@ -23,7 +26,7 @@ import { UpcomingDeadlinesList } from '#/features/dashboard/components/UpcomingD
 import { RegisterStrip } from '#/features/dashboard/components/RegisterStrip'
 import type { DashboardSummaryData } from '#/features/dashboard/hooks/useDashboardSummary'
 
-const SCREENS = ['dashboard', 'gaps', 'settings', 'states'] as const
+const SCREENS = ['dashboard', 'gaps', 'settings', 'panels', 'states'] as const
 
 export const Route = createFileRoute('/preview-ui')({
   component: PreviewUi,
@@ -166,6 +169,38 @@ function PreviewUi() {
                 />
                 <SettingsTabs />
                 <IntermediaryProfile intermediary={intermediary} />
+              </div>
+            )}
+
+            {/* Panels carrying hardcoded hex colors — rendered here so the
+                light/dark treatment of each can actually be checked. */}
+            {screen === 'panels' && (
+              <div className="space-y-6">
+                <PageHeader
+                  title="Detail panels"
+                  description="Citation, audit trail and evidence surfaces."
+                />
+                <CitationPanel
+                  citationText="Every investment adviser shall conduct an annual risk profiling of each client and retain documentary evidence of the same for a period of not less than five years."
+                  citationPage={14}
+                  citationSection="Chapter III, Clause 8(2)"
+                />
+                <AuditTimeline
+                  entries={[
+                    { id: 'a1', action: 'GAP_DETECTED', actorType: 'SYSTEM', actorUserId: null, createdAt: day(-3) },
+                    { id: 'a2', action: 'EVIDENCE_UPLOADED', actorType: 'USER', actorUserId: 'u_1', createdAt: day(-2) },
+                    { id: 'a3', action: 'STATUS_CHANGED', actorType: 'USER', actorUserId: 'u_1', createdAt: day(-1) },
+                    { id: 'a4', action: 'GAP_RESOLVED', actorType: 'USER', actorUserId: 'u_1', createdAt: day(0) },
+                  ]}
+                />
+                <EvidenceList
+                  evidenceRecords={
+                    [
+                      { id: 'e1', evidenceType: 'DOCUMENT', description: 'Signed risk profiling questionnaire', submittedAt: day(-5), validUntil: day(360) },
+                      { id: 'e2', evidenceType: 'ATTESTATION', description: null, submittedAt: day(-20), validUntil: null },
+                    ] as unknown as React.ComponentProps<typeof EvidenceList>['evidenceRecords']
+                  }
+                />
               </div>
             )}
 

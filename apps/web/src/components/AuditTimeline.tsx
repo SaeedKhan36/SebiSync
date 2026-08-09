@@ -73,7 +73,7 @@ export function AuditTimeline({ entries }: AuditTimelineProps) {
     <Card className="gap-4">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-[15px] font-semibold">
-          <Fingerprint className="size-4 text-[#3730a3]" />
+          <Fingerprint className="size-4 text-[#3730a3] dark:text-indigo-300" />
           Audit trail
         </CardTitle>
       </CardHeader>

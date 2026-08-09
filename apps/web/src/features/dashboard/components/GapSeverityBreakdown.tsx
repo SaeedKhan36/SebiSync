@@ -35,7 +35,7 @@ export function GapSeverityBreakdown({ data }: GapSeverityBreakdownProps) {
           // A calm one-liner, not a 200px dashed box — "nothing is wrong" is
           // good news and shouldn't occupy the page like a missing feature.
           <div className="flex items-center gap-2.5 py-3">
-            <CheckCircle2 className="size-5 shrink-0 text-[#15803d]" strokeWidth={2} />
+            <CheckCircle2 className="size-5 shrink-0 text-[#15803d] dark:text-green-400" strokeWidth={2} />
             <div>
               <p className="text-sm font-medium text-foreground">All clear</p>
               <p className="text-xs text-muted-foreground">No open gaps across your checklists.</p>

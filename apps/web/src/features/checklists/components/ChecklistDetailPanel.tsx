@@ -21,7 +21,7 @@ export function ChecklistDetailPanel({ item }: ChecklistDetailPanelProps) {
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1">
             <CardTitle className="flex items-center gap-2 text-[15px] font-semibold">
-              <Gavel className="size-4 shrink-0 text-[#3730a3]" />
+              <Gavel className="size-4 shrink-0 text-[#3730a3] dark:text-indigo-300" />
               {obligation.title}
             </CardTitle>
             <p className="font-mono text-xs text-muted-foreground">{obligation.code}</p>

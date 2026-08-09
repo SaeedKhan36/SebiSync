@@ -25,7 +25,7 @@ export function GapDetailPanel({ gap }: GapDetailPanelProps) {
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1">
             <CardTitle className="flex items-center gap-2 text-[15px] font-semibold">
-              <ShieldAlert className="size-4 shrink-0 text-[#b91c1c]" />
+              <ShieldAlert className="size-4 shrink-0 text-[#b91c1c] dark:text-red-400" />
               {obligation.title}
             </CardTitle>
             <p className="font-mono text-xs text-muted-foreground">{obligation.code}</p>
@@ -63,14 +63,14 @@ export function GapDetailPanel({ gap }: GapDetailPanelProps) {
       {/* Resolution card carries the semantic state: green when resolved,
           amber "action needed" accent while open. */}
       <Card
-        className={`gap-4 border-l-2 ${resolved ? 'border-l-[#15803d]' : 'border-l-[#b45309]'}`}
+        className={`gap-4 border-l-2 ${resolved ? 'border-l-[#15803d] dark:border-l-green-500' : 'border-l-[#b45309] dark:border-l-amber-500'}`}
       >
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-[15px] font-semibold">
             {resolved ? (
-              <CheckCircle2 className="size-4 text-[#15803d]" />
+              <CheckCircle2 className="size-4 text-[#15803d] dark:text-green-400" />
             ) : (
-              <ShieldAlert className="size-4 text-[#b45309]" />
+              <ShieldAlert className="size-4 text-[#b45309] dark:text-amber-400" />
             )}
             Resolution
           </CardTitle>
@@ -78,7 +78,7 @@ export function GapDetailPanel({ gap }: GapDetailPanelProps) {
         <CardContent>
           {resolved ? (
             <div className="space-y-1.5">
-              <p className="inline-flex items-center gap-1.5 rounded-full bg-[#f0fdf4] px-2.5 py-1 text-[11px] font-medium text-[#15803d]">
+              <p className="inline-flex items-center gap-1.5 rounded-full bg-[#f0fdf4] dark:bg-green-950/40 px-2.5 py-1 text-[11px] font-medium text-[#15803d] dark:text-green-400">
                 <CheckCircle2 className="size-3" />
                 Resolved {formatDate(gap.resolvedAt!)}
               </p>

@@ -35,7 +35,7 @@ function DocumentDetailPage() {
       <Card className="gap-4">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-[15px] font-semibold">
-            <FileText className="size-4 text-[#3730a3]" />
+            <FileText className="size-4 text-[#3730a3] dark:text-indigo-300" />
             Circular details
           </CardTitle>
         </CardHeader>
@@ -57,7 +57,7 @@ function DocumentDetailPage() {
               href={document.sourceUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-[#3730a3] hover:underline"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-[#3730a3] dark:text-indigo-300 hover:underline"
             >
               View source circular
               <ExternalLink className="size-3.5" />

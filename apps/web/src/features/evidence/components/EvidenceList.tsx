@@ -16,7 +16,7 @@ export function EvidenceList({ evidenceRecords, action }: EvidenceListProps) {
     <Card className="gap-4">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2 text-[15px] font-semibold">
-          <FileCheck2 className="size-4 text-[#15803d]" />
+          <FileCheck2 className="size-4 text-[#15803d] dark:text-green-400" />
           Evidence
         </CardTitle>
         {action}

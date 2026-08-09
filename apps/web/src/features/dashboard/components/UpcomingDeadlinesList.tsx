@@ -112,7 +112,7 @@ function DeadlineGroup({
                 <span
                   className={cn(
                     'shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium',
-                    urgent ? 'bg-[#fef2f2] text-[#b91c1c]' : 'bg-muted text-muted-foreground',
+                    urgent ? 'bg-[#fef2f2] dark:bg-red-950/40 text-[#b91c1c] dark:text-red-400' : 'bg-muted text-muted-foreground',
                   )}
                 >
                   {dueInLabel(days)}

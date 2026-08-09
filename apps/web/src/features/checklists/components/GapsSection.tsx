@@ -19,7 +19,7 @@ export function GapsSection({ gaps }: GapsSectionProps) {
     <Card className="gap-4">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-[15px] font-semibold">
-          <ShieldAlert className="size-4 text-[#b91c1c]" />
+          <ShieldAlert className="size-4 text-[#b91c1c] dark:text-red-400" />
           Gaps
         </CardTitle>
       </CardHeader>
@@ -36,7 +36,7 @@ export function GapsSection({ gaps }: GapsSectionProps) {
                   className="group -mx-2 flex items-center justify-between gap-3 rounded-md px-2 py-3 transition-colors hover:bg-accent/60"
                 >
                   <div className="space-y-0.5">
-                    <p className="text-sm font-medium group-hover:text-[#3730a3]">
+                    <p className="text-sm font-medium group-hover:text-[#3730a3] dark:group-hover:text-indigo-300">
                       {gapTypeLabelMap[gap.gapType]}
                     </p>
                     <p className="text-xs text-muted-foreground">

@@ -49,7 +49,7 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
       value: totalChecklistItems,
       hint: 'across your client book',
       icon: ListChecks,
-      chipClass: 'bg-[#eef2ff] text-[#3730a3]',
+      chipClass: 'bg-[#eef2ff] dark:bg-indigo-950/50 text-[#3730a3] dark:text-indigo-300',
       link: { to: '/checklists' },
     },
     {
@@ -57,7 +57,7 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
       value: compliantCount,
       hint: compliantPct === null ? 'no items yet' : `${compliantPct}% of all items`,
       icon: CheckCircle2,
-      chipClass: 'bg-[#f0fdf4] text-[#15803d]',
+      chipClass: 'bg-[#f0fdf4] dark:bg-green-950/40 text-[#15803d] dark:text-green-400',
       link: { to: '/checklists', search: { status: 'COMPLIANT' } },
     },
     {
@@ -66,7 +66,7 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
       hint: openGapsCount === 0 ? 'nothing needs attention' : 'needs attention',
       icon: AlertTriangle,
       chipClass:
-        openGapsCount === 0 ? 'bg-muted text-muted-foreground' : 'bg-[#fef2f2] text-[#b91c1c]',
+        openGapsCount === 0 ? 'bg-muted text-muted-foreground' : 'bg-[#fef2f2] dark:bg-red-950/40 text-[#b91c1c] dark:text-red-400',
       // 'unresolved' not `false` — the gaps route models this as a tri-state
       // string enum so it round-trips through the URL.
       link: { to: '/gaps', search: { resolved: 'unresolved' } },
@@ -76,7 +76,7 @@ export function SummaryCards({ summary }: SummaryCardsProps) {
       value: publishedObligations,
       hint: 'live in the register',
       icon: BookOpenCheck,
-      chipClass: 'bg-[#eef2ff] text-[#3730a3]',
+      chipClass: 'bg-[#eef2ff] dark:bg-indigo-950/50 text-[#3730a3] dark:text-indigo-300',
       link: { to: '/obligations', search: { status: 'PUBLISHED' } },
     },
   ]
