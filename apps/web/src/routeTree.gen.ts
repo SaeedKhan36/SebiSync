@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as PreviewDashboardRouteImport } from './routes/preview-dashboard'
 import { Route as PreviewDocumentsRouteImport } from './routes/preview-documents'
+import { Route as PreviewUiRouteImport } from './routes/preview-ui'
 import { Route as AuthenticatedOrgRouteRouteImport } from './routes/_authenticated/_org/route'
 import { Route as AuthenticatedDocumentsIndexRouteImport } from './routes/_authenticated/documents/index'
 import { Route as AuthenticatedDocumentsDocumentIdRouteImport } from './routes/_authenticated/documents/$documentId'
@@ -50,6 +51,11 @@ const PreviewDashboardRoute = PreviewDashboardRouteImport.update({
 const PreviewDocumentsRoute = PreviewDocumentsRouteImport.update({
   id: '/preview-documents',
   path: '/preview-documents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PreviewUiRoute = PreviewUiRouteImport.update({
+  id: '/preview-ui',
+  path: '/preview-ui',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedOrgRouteRoute = AuthenticatedOrgRouteRouteImport.update({
@@ -165,6 +171,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/preview-dashboard': typeof PreviewDashboardRoute
   '/preview-documents': typeof PreviewDocumentsRoute
+  '/preview-ui': typeof PreviewUiRoute
   '/documents/$documentId': typeof AuthenticatedDocumentsDocumentIdRoute
   '/obligations/$obligationId': typeof AuthenticatedObligationsObligationIdRoute
   '/obligations/review': typeof AuthenticatedObligationsReviewRoute
@@ -188,6 +195,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/preview-dashboard': typeof PreviewDashboardRoute
   '/preview-documents': typeof PreviewDocumentsRoute
+  '/preview-ui': typeof PreviewUiRoute
   '/documents/$documentId': typeof AuthenticatedDocumentsDocumentIdRoute
   '/obligations/$obligationId': typeof AuthenticatedObligationsObligationIdRoute
   '/obligations/review': typeof AuthenticatedObligationsReviewRoute
@@ -213,6 +221,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/preview-dashboard': typeof PreviewDashboardRoute
   '/preview-documents': typeof PreviewDocumentsRoute
+  '/preview-ui': typeof PreviewUiRoute
   '/_authenticated/_org': typeof AuthenticatedOrgRouteRouteWithChildren
   '/_authenticated/documents/$documentId': typeof AuthenticatedDocumentsDocumentIdRoute
   '/_authenticated/obligations/$obligationId': typeof AuthenticatedObligationsObligationIdRoute
@@ -239,6 +248,7 @@ export interface FileRouteTypes {
     | '/'
     | '/preview-dashboard'
     | '/preview-documents'
+    | '/preview-ui'
     | '/documents/$documentId'
     | '/obligations/$obligationId'
     | '/obligations/review'
@@ -262,6 +272,7 @@ export interface FileRouteTypes {
     | '/'
     | '/preview-dashboard'
     | '/preview-documents'
+    | '/preview-ui'
     | '/documents/$documentId'
     | '/obligations/$obligationId'
     | '/obligations/review'
@@ -286,6 +297,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/preview-dashboard'
     | '/preview-documents'
+    | '/preview-ui'
     | '/_authenticated/_org'
     | '/_authenticated/documents/$documentId'
     | '/_authenticated/obligations/$obligationId'
@@ -312,6 +324,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   PreviewDashboardRoute: typeof PreviewDashboardRoute
   PreviewDocumentsRoute: typeof PreviewDocumentsRoute
+  PreviewUiRoute: typeof PreviewUiRoute
   AuthLoginSplatRoute: typeof AuthLoginSplatRoute
   AuthRegisterSplatRoute: typeof AuthRegisterSplatRoute
   AuthLoginIndexRoute: typeof AuthLoginIndexRoute
@@ -346,6 +359,13 @@ declare module '@tanstack/react-router' {
       path: '/preview-documents'
       fullPath: '/preview-documents'
       preLoaderRoute: typeof PreviewDocumentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/preview-ui': {
+      id: '/preview-ui'
+      path: '/preview-ui'
+      fullPath: '/preview-ui'
+      preLoaderRoute: typeof PreviewUiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/_org': {
@@ -543,6 +563,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   PreviewDashboardRoute: PreviewDashboardRoute,
   PreviewDocumentsRoute: PreviewDocumentsRoute,
+  PreviewUiRoute: PreviewUiRoute,
   AuthLoginSplatRoute: AuthLoginSplatRoute,
   AuthRegisterSplatRoute: AuthRegisterSplatRoute,
   AuthLoginIndexRoute: AuthLoginIndexRoute,

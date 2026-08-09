@@ -16,6 +16,11 @@ export interface StatusEntry {
   // where the 4 built-in shadcn variants aren't expressive enough (e.g.
   // distinguishing MEDIUM from HIGH severity, both of which need to read as
   // "not yet destructive but not calm either").
+  //
+  // The `outline` variant is transparent, so its text sits directly on the
+  // page surface and needs a dark: counterpart — the -700 shades measure
+  // 3.8:1 and 4.0:1 on the dark background, both below the 4.5:1 AA floor
+  // for this 12px text. The -400 shades clear it comfortably.
   className?: string
 }
 
@@ -41,7 +46,7 @@ export const docStatusColorMap: Record<DocStatus, StatusEntry> = {
 }
 
 export const obligationStatusColorMap: Record<ObligationStatus, StatusEntry> = {
-  DRAFT: { label: 'Draft', variant: 'outline', className: 'border-amber-500 text-amber-700' },
+  DRAFT: { label: 'Draft', variant: 'outline', className: 'border-amber-500 text-amber-700 dark:text-amber-400' },
   REVIEWED: { label: 'Reviewed', variant: 'secondary' },
   PUBLISHED: {
     label: 'Published',
@@ -69,8 +74,8 @@ export const checklistStatusColorMap: Record<ChecklistStatus, StatusEntry> = {
 
 export const gapSeverityColorMap: Record<GapSeverity, StatusEntry> = {
   LOW: { label: 'Low', variant: 'secondary' },
-  MEDIUM: { label: 'Medium', variant: 'outline', className: 'border-amber-500 text-amber-700' },
-  HIGH: { label: 'High', variant: 'outline', className: 'border-orange-500 text-orange-700' },
+  MEDIUM: { label: 'Medium', variant: 'outline', className: 'border-amber-500 text-amber-700 dark:text-amber-400' },
+  HIGH: { label: 'High', variant: 'outline', className: 'border-orange-500 text-orange-700 dark:text-orange-400' },
   CRITICAL: { label: 'Critical', variant: 'destructive' },
 }
 
@@ -131,14 +136,14 @@ export type ObligationFanOutStatus = 'NONE' | 'PENDING' | 'IN_PROGRESS' | 'COMPL
 // picked as a reasonable "flag for human review" cutoff, not measured
 // against the real extraction pipeline's confidence distribution yet.
 export function confidenceBucket(value: number): StatusEntry {
-  if (value < 0.7) return { label: 'Low', variant: 'outline', className: 'border-amber-500 text-amber-700' }
+  if (value < 0.7) return { label: 'Low', variant: 'outline', className: 'border-amber-500 text-amber-700 dark:text-amber-400' }
   if (value >= 0.9) return { label: 'High', variant: 'default', className: 'bg-[#15803d] hover:bg-[#15803d]/90' }
   return { label: 'Medium', variant: 'secondary' }
 }
 
 export const obligationFanOutStatusColorMap: Record<ObligationFanOutStatus, StatusEntry> = {
   NONE: { label: 'Not published', variant: 'secondary' },
-  PENDING: { label: 'Fan-out queued', variant: 'outline', className: 'border-amber-500 text-amber-700' },
+  PENDING: { label: 'Fan-out queued', variant: 'outline', className: 'border-amber-500 text-amber-700 dark:text-amber-400' },
   IN_PROGRESS: {
     label: 'Propagating…',
     variant: 'default',

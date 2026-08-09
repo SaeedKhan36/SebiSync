@@ -43,7 +43,12 @@ function AuthenticatedLayout() {
   return (
     <div className="flex min-h-screen">
       <AppSidebar />
-      <div className="flex flex-1 flex-col">
+      {/* min-w-0 is load-bearing: a flex item defaults to min-width:auto, so
+          without it this column refuses to shrink below its content's
+          intrinsic width and the whole page scrolls sideways on any route
+          with a wide table — the inner overflow-x-auto never gets a chance
+          to do its job. */}
+      <div className="flex min-w-0 flex-1 flex-col">
         <AppTopbar />
         <main className="flex-1 px-4 py-6 md:px-8">
           <div className="mx-auto w-full max-w-6xl">
