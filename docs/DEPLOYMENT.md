@@ -72,6 +72,23 @@ longer than any Vercel function may run, so it executes as a Trigger.dev task
 (`maxDuration: 900`); the tRPC route only enqueues it. Set `TRIGGER_SECRET_KEY`
 and `TRIGGER_PROJECT_REF` or uploads will enqueue nothing.
 
+**Git push does not deploy the parser.** Vercel ships the tRPC API; Trigger.dev
+ships the pipeline. After merging to `main`:
+
+```bash
+cd apps/worker && npx trigger.dev@latest deploy
+```
+
+`GEMINI_API_KEY` must also be set in the Trigger.dev dashboard (Environment
+Variables). That project does not inherit Vercel env vars. It is now
+load-bearing for parsing, not just extraction — a scanned PDF fails at
+`PARSING` without it.
+
+Do not delete the old Render Docling service until a production upload has
+reached `EXTRACTED`. If you merge, Vercel deploys, you delete Render, and you
+skip the Trigger.dev deploy, the old task is still running, still calling
+`DOCLING_SIDECAR_URL`, and every upload dies at `PARSING`.
+
 ### Why the worker needs a build step at all
 
 `node dist/server.js` did not work before this was set up, for two reasons: the
