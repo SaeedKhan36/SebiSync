@@ -10,7 +10,7 @@ import { useStartExtraction } from '#/features/documents/hooks/useStartExtractio
 import { useRetryExtraction } from '#/features/documents/hooks/useRetryExtraction'
 
 const STATUS_COPY: Partial<Record<DocStatus, string>> = {
-  PARSING: 'Parsing document with Docling...',
+  PARSING: 'Parsing document...',
   EXTRACTING: 'Extracting obligations with the LLM agent...',
 }
 
