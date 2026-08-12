@@ -63,7 +63,7 @@ is attributed to a stage:
 
 | Cause | Meaning | Where to fix it |
 |---|---|---|
-| `NOT_IN_PARSED_TEXT` | The clause never survived PDF parsing | Docling config, chunking |
+| `NOT_IN_PARSED_TEXT` | The clause never survived PDF parsing | `ingestion/pdfTextLayer.ts` (text layer), `pdfSections.ts` (heading/wrap detection), `chunker.ts` |
 | `NOT_EXTRACTED` | Text was present; the model did not propose it | Extraction prompt |
 | `DROPPED_BY_CITATION_GUARD` | Model proposed it but paraphrased the quote | Prompt (quote verbatim) |
 | `DROPPED_BY_CLASSIFICATION` | No seeded `IntermediaryCategory` matched | `packages/db/prisma/seed.ts` |

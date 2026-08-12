@@ -20,9 +20,11 @@ replaces.
 
 ## What it does
 
-1. **Ingest** — Upload a circular PDF. Docling parses it into structured text;
-   Gemini (via a LangGraph extraction agent) reads it and drafts candidate
-   obligations, each anchored to a verbatim citation in the source document.
+1. **Ingest** — Upload a circular PDF. It's parsed into structured text in
+   TypeScript: `unpdf` reads the embedded text layer verbatim, and only scanned
+   pages fall back to Gemini vision OCR. Gemini (via a LangGraph extraction
+   agent) then reads it and drafts candidate obligations, each anchored to a
+   verbatim citation in the source document.
 2. **Guard** — Every draft is checked against the actual source text before it
    can be shown. Citations that don't verbatim-match the circular (beyond
    typographic normalization like curly quotes/ligatures) are rejected. The
@@ -76,10 +78,11 @@ apps/web        React 19 + TanStack Start/Router/Query, Tailwind v4, shadcn —
                  the compliance officer / intermediary UI, deployed to Vercel
                  as a static SPA.
 
-apps/worker      Hono + tRPC API, LangGraph extraction agent (Gemini
-                 2.5-flash), gap detection, Trigger.dev fan-out jobs,
-                 Clerk auth, R2 storage — deployed to Render as a Docker
-                 service.
+apps/worker      Hono + tRPC API, PDF parsing (unpdf + Gemini OCR), LangGraph
+                 extraction agent (Gemini 2.5-flash), gap detection,
+                 Trigger.dev jobs, Clerk auth, R2 storage — the API deploys to
+                 Vercel as a serverless function; the long-running ingestion
+                 pipeline runs as a Trigger.dev task.
 
 services/
   docling-sidecar  SUPERSEDED. The former Python/FastAPI PDF parser. Parsing is
@@ -170,5 +173,5 @@ Run from the repo root unless noted.
 
 TypeScript everywhere · React 19 · TanStack Start/Router/Query · Tailwind v4 +
 shadcn/radix · Hono · tRPC · Prisma + Postgres/pgvector (Neon) · LangGraph +
-Gemini 2.5-flash · Docling (Python/FastAPI) · Clerk · Cloudflare R2 ·
+Gemini 2.5-flash · unpdf (serverless PDF.js) · Clerk · Cloudflare R2 ·
 Trigger.dev · Resend · Turborepo + Bun workspaces.
