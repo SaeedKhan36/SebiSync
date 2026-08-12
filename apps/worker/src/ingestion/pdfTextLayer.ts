@@ -8,6 +8,15 @@ import { extractTextItems } from "unpdf";
 // We use extractTextItems() rather than the simpler extractText() because
 // heading detection (pdfSections.ts) needs per-item font size, and
 // extractText() collapses that away.
+//
+// DO NOT remove `pdfjs-dist` from package.json as an unused dependency. Nothing
+// imports it, by design: unpdf locates it at runtime with
+// import.meta.resolve("pdfjs-dist/package.json") to find its standard_fonts/
+// and cmaps/ directories, and it bundles its own copy of PDF.js otherwise.
+// The lookup sits in a try/catch, so a missing package does not throw — text
+// extraction just quietly degrades for non-embedded standard fonts and CJK
+// encodings. trigger.config.ts pins it via additionalPackages() for the same
+// reason.
 
 export interface TextLine {
   text: string;
