@@ -32,9 +32,9 @@ regulatory source, which is the one claim this product cannot afford to get wron
 relabels rather than deletes, because those rows carry real checklist items, evidence and
 gaps the demo depends on.
 
-Start the Docling sidecar (`services/docling-sidecar`, port 8000), the worker
-(`cd apps/worker && bun run dev`, port 8787) and the web app (`cd apps/web && bun run dev`,
-port 3000).
+Start the worker (`cd apps/worker && bun run dev`, port 8787) and the web app
+(`cd apps/web && bun run dev`, port 3000). PDF parsing runs in-process now — there
+is no sidecar to start.
 
 ## Beats
 

@@ -3,7 +3,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 // Lazily constructed: this module is reachable via static imports from
 // server.ts (server -> router -> document -> ingestion/workflow ->
-// docling-client -> storage/r2), which ESM executes before server.ts's own
+// ingestion/parser -> storage/r2), which ESM executes before server.ts's own
 // dotenv.config() calls run. Reading process.env at call time (not module
 // load time) avoids capturing empty values.
 let client: S3Client | undefined;

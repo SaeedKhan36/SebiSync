@@ -1,6 +1,6 @@
 import { prisma } from "@sebi/db";
 import { writeAuditLog } from "../lib/audit";
-import { parseDocument } from "./docling-client";
+import { parseDocument } from "./parser";
 import { chunkDocument } from "./chunker";
 import { embedChunks, writeChunkEmbeddings } from "./embed";
 import { runExtractionAgent, type ExtractionSummary } from "../agents/extraction/graph";
@@ -9,10 +9,10 @@ import { runExtractionAgent, type ExtractionSummary } from "../agents/extraction
 // synchronously per document. If deployed behind Vercel Workflows, each
 // `await` below is where a durable step boundary would go.
 export async function runIngestionWorkflow(documentId: string): Promise<ExtractionSummary> {
-  const document = await prisma.regulatoryDocument.findUniqueOrThrow({ where: { id: documentId } });
+  await prisma.regulatoryDocument.findUniqueOrThrow({ where: { id: documentId } });
 
   try {
-    const parseResult = await parseDocument(document);
+    const parseResult = await parseDocument(documentId);
     await prisma.regulatoryDocument.update({ where: { id: documentId }, data: { status: "PARSED" } });
 
     const chunks = chunkDocument(parseResult);

@@ -1,13 +1,22 @@
 # Deployment
 
-Four pieces, three providers:
+Three pieces:
 
 | Piece | Where | What it is |
 |---|---|---|
 | `apps/web` | Vercel | Static SPA (no serverless functions) |
-| `apps/worker` | Render | Docker web service — tRPC API, ingestion, gap detection |
-| `services/docling-sidecar` | Render | Docker web service — PDF parsing |
+| `apps/worker` | Vercel function (`apps/worker/vercel.json`) | tRPC API; long-running ingestion runs on Trigger.dev |
 | Postgres + pgvector | Neon | Already provisioned |
+
+**There is no longer a PDF-parsing service to deploy.** Parsing moved into
+TypeScript (`apps/worker/src/ingestion/`): `unpdf` reads the embedded text
+layer and any scanned page is OCRed by sending the PDF to Gemini, which
+rasterizes it server-side. That removed the Python + PaddleOCR sidecar, its
+Render service and `render.yaml` altogether. `services/docling-sidecar/` is
+retained on disk for output comparison only and is not deployed.
+
+`apps/worker` also still ships a `Dockerfile` for running it as a long-lived
+container on any Docker host, which is what `bun run start` serves locally.
 
 Deploy **worker before frontend**: the frontend bakes the worker's URL into its
 bundle at build time, so it needs to exist first.
@@ -38,39 +47,30 @@ connection per request and will exhaust a direct endpoint.
 
 ---
 
-## 2. Docling sidecar (Render)
+## 2. Worker
 
-The worker calls this during ingestion; without it, ingest fails at the parse
-step and leaves the document stuck in `PARSING`.
+Deploy `apps/worker` — its `vercel.json` handles install, `prisma generate` and
+the esbuild bundle, and exposes the Hono app through `api/index.ts`.
 
-Render → New → Blueprint → select this repo. `render.yaml` defines both services.
+Set the secrets listed with explanations in `apps/worker/.env.example`. Two are
+easy to get wrong:
 
-**It is set to the `standard` plan, and that is not a preference.** The image
-bundles docling plus paddleocr/paddlepaddle, which needs well over Render free's
-512 MB when the models load. On free it OOMs partway through the first parse.
-
-Confirm `https://<docling>.onrender.com/health` responds before continuing.
-
----
-
-## 3. Worker (Render)
-
-Created by the same blueprint. Set the secrets Render prompts for — every one is
-declared `sync: false` in `render.yaml` so nothing sensitive lives in git. The
-full list with explanations is in `apps/worker/.env.example`.
-
-Two that are easy to get wrong:
-
-- **`DOCLING_SIDECAR_URL`** — the sidecar's Render URL, no trailing slash.
+- **`GEMINI_API_KEY`** — now load-bearing for parsing as well as extraction.
+  Scanned PDFs are OCRed through Gemini, so without this key a scanned circular
+  fails at the parse step and the document sticks in `PARSING`. Text-based PDFs
+  still parse without it, since `unpdf` needs no API.
 - **`WEB_ORIGIN`** — comma-separated CORS allowlist. It must contain your Vercel
   URL. If it does not, nothing errors visibly: every tRPC call just fails with
-  "Failed to fetch". You will not have this URL until step 4, so come back and
+  "Failed to fetch". You will not have this URL until step 3, so come back and
   set it. **The first entry is also used as the canonical origin for links in
   notification emails**, so put production first and previews after.
 
-Health check is `/health`. On Render's free plan the service sleeps after
-inactivity and the first request takes ~50s to wake it — worth warming before a
-live demo.
+Health check is `/health`.
+
+Ingestion itself (parse → chunk → embed → extract) takes minutes, which is
+longer than any Vercel function may run, so it executes as a Trigger.dev task
+(`maxDuration: 900`); the tRPC route only enqueues it. Set `TRIGGER_SECRET_KEY`
+and `TRIGGER_PROJECT_REF` or uploads will enqueue nothing.
 
 ### Why the worker needs a build step at all
 
@@ -82,7 +82,7 @@ notably `@prisma/client`, which loads a native query engine — external.
 
 ---
 
-## 4. Frontend (Vercel)
+## 3. Frontend (Vercel)
 
 Import the repo. `vercel.json` at the root already sets the build:
 
@@ -98,13 +98,13 @@ graph, so pointing Vercel at `apps/web` breaks resolution.
 Set two environment variables:
 
 - `VITE_CLERK_PUBLISHABLE_KEY`
-- `VITE_WORKER_URL` — the worker's Render URL, no trailing slash
+- `VITE_WORKER_URL` — the worker's deployed URL, no trailing slash
 
 **Vite inlines `VITE_*` at build time.** Changing either one needs a redeploy,
 not a restart. And nothing secret may go in a `VITE_*` variable — it ships to the
 browser in plain text.
 
-Then go back to Render and add the Vercel URL to `WEB_ORIGIN`.
+Then go back to the worker's settings and add the Vercel URL to `WEB_ORIGIN`.
 
 ### Why SPA and not SSR
 
@@ -123,11 +123,10 @@ To go back to SSR: drop the `spa` option and give Vercel a server preset —
 
 ---
 
-## 5. Post-deploy checks
+## 4. Post-deploy checks
 
 ```bash
-curl https://<docling>.onrender.com/health     # {"status":"ok"}
-curl https://<worker>.onrender.com/health      # {"status":"ok"}
+curl https://<worker>/health      # {"status":"ok"}
 ```
 
 Then in the browser: load the Vercel URL, sign in, and confirm the dashboard
@@ -151,20 +150,19 @@ Verified locally:
 
 Verified without a Docker daemon:
 
-- Every `COPY` source path in both Dockerfiles exists
+- Every `COPY` source path in the worker Dockerfile exists
 - `prisma generate` succeeds with `DATABASE_URL` unset, which is the state it
   runs in inside the image
 - `.dockerignore` excludes all four real `.env` files while keeping the
   `.env.example` templates
 
-**Not verified: the two Dockerfiles actually build.** The Docker daemon was not
-running on the machine where this was set up (its backend service needs
-Administrator to start), so neither image has been built even once. Do this
-before you rely on them:
+**Not verified: the worker Dockerfile actually builds.** The Docker daemon was
+not running on the machine where this was set up (its backend service needs
+Administrator to start), so the image has never been built. Do this before you
+rely on it — it is only needed for container hosting, not for the Vercel path:
 
 ```bash
 docker build -f apps/worker/Dockerfile -t sebisync-worker .
-docker build -f services/docling-sidecar/Dockerfile -t sebisync-docling services/docling-sidecar
 ```
 
 The worker build must run from the **repo root** — it needs `packages/` and

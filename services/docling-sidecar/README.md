@@ -1,4 +1,18 @@
-# Docling Sidecar
+# Docling Sidecar — SUPERSEDED, NOT DEPLOYED
+
+> **This service is no longer part of the running system.** PDF parsing moved
+> into TypeScript in `apps/worker/src/ingestion/` — `unpdf` reads the embedded
+> text layer and Gemini OCRs any scanned page, so nothing here is called at
+> runtime. Removing it is what allows the whole stack to deploy to Vercel: no
+> Python runtime, no Docker image, no Render service.
+>
+> The code is retained only so its output can be diffed against the TypeScript
+> parser's while the migration is validated. Nothing imports it, `render.yaml`
+> is gone, and `DOCLING_SIDECAR_URL` no longer exists. Delete this directory
+> once you are satisfied with the TypeScript parser's citation pass rate.
+>
+> Note it was also always unauthenticated — anyone who could reach its URL
+> could POST a PDF to `/parse`. Do not redeploy it as-is.
 
 A standalone FastAPI service that converts uploaded PDFs into structured JSON
 (headings, sections, tables, lists, page numbers, Markdown). It has exactly

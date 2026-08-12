@@ -1,4 +1,4 @@
-import type { DoclingParseResult } from "./docling-client";
+import type { ParsedDocument } from "./parser";
 
 export interface ChunkInput {
   chunkIndex: number;
@@ -10,10 +10,10 @@ export interface ChunkInput {
 const TARGET_WORDS_MIN = 230; // ~300 tokens
 const TARGET_WORDS_MAX = 385; // ~500 tokens
 
-// Splits parsed Docling output into ~300-500 token chunks, respecting section
+// Splits parsed output into ~300-500 token chunks, respecting section
 // boundaries where possible: small consecutive sections are concatenated up
 // to the cap; sections larger than the cap are split at sentence boundaries.
-export function chunkDocument(parseResult: DoclingParseResult): ChunkInput[] {
+export function chunkDocument(parseResult: ParsedDocument): ChunkInput[] {
   const chunks: ChunkInput[] = [];
   let buffer: { pageNumber: number | null; sectionPath: string | null; words: string[] } | null =
     null;

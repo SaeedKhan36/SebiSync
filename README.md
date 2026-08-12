@@ -82,8 +82,9 @@ apps/worker      Hono + tRPC API, LangGraph extraction agent (Gemini
                  service.
 
 services/
-  docling-sidecar  Python/FastAPI sidecar wrapping Docling for PDF → structured
-                    text/table parsing, deployed to Render as a Docker service.
+  docling-sidecar  SUPERSEDED. The former Python/FastAPI PDF parser. Parsing is
+                    now TypeScript (apps/worker/src/ingestion/); this is kept
+                    on disk for output comparison and is not deployed.
 
 packages/
   db             Prisma schema + client, shared by web and worker
@@ -107,9 +108,6 @@ bun install
 cd packages/db && npx prisma migrate deploy && cd ../..
 bun run db:seed        # required — see below
 
-# PDF parsing sidecar (separate terminal)
-cd services/docling-sidecar && docker compose up   # or see its own README
-
 # worker API (separate terminal)
 cd apps/worker && bun run dev     # http://localhost:8787
 
@@ -123,7 +121,7 @@ Obligations whose category isn't seeded are silently dropped at fan-out with
 no visible error — see `docs/DEMO.md` for the full explanation.
 
 Copy `apps/worker/.env.example` to `apps/worker/.env` and fill in
-`DATABASE_URL`, `GEMINI_API_KEY`, `DOCLING_SIDECAR_URL`, Clerk keys, and R2
+`DATABASE_URL`, `GEMINI_API_KEY`, Clerk keys, and R2
 credentials at minimum. Optional integrations (Resend email, Trigger.dev,
 `INTERNAL_API_SECRET`) degrade gracefully when unset — see the file's inline
 comments for exactly what each one does when missing.
@@ -149,8 +147,8 @@ and the amendment/supersession flow — is in **`docs/DEMO.md`**.
 - [`docs/DEMO.md`](docs/DEMO.md) — full narrated demo runbook, beat by beat.
 - [`docs/BENCHMARK.md`](docs/BENCHMARK.md) — extraction accuracy methodology
   (precision/recall/F1 against hand-labelled ground truth).
-- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — deploying web (Vercel), worker
-  + docling sidecar (Render), and Postgres (Neon).
+- [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) — deploying web and worker
+  (Vercel) and Postgres (Neon). No Python service to deploy.
 - [`docs/pitch/`](docs/pitch) — pitch deck variants (SEBI TechSprint, IDBI
   Innovate, platform overview).
 

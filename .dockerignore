@@ -1,8 +1,6 @@
 # Build context exclusions for images built from the REPO ROOT
-# (currently apps/worker/Dockerfile — see render.yaml's dockerContext: .).
-#
-# The sidecar builds from services/docling-sidecar and uses its own
-# .dockerignore; this file does not apply there.
+# (currently apps/worker/Dockerfile, which needs packages/ and bun.lock to
+# resolve the workspace graph).
 #
 # The .env rules are the important ones and are a security control, not an
 # optimisation. The worker Dockerfile does `COPY packages ./packages` and

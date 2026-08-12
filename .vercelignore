@@ -16,8 +16,8 @@ docs
 *.pptx
 *.log
 
-# The docling sidecar deploys to Render, not Vercel. Its image pulls in
-# paddleocr/paddlepaddle and has no business in either Vercel project.
+# The docling sidecar is superseded dead code (parsing is TypeScript now) and
+# is not deployed anywhere. Kept out of the upload regardless.
 services/docling-sidecar
 
 # Python leftovers, in case the sidecar was ever run locally.
