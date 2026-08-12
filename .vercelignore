@@ -1,0 +1,26 @@
+# Trims the source upload for BOTH Vercel projects (web and worker). Nothing
+# here is needed to build either one — the build runs `bun install` and the
+# bundlers from scratch on Vercel's side.
+#
+# Without this the CLI uploads ~100 MB of docs and slides on every deploy,
+# which is slow enough to look like a hang.
+
+# Build output — regenerated on Vercel, never uploaded.
+dist
+.output
+.turbo
+.vercel/output
+
+# Not part of any build.
+docs
+*.pptx
+*.log
+
+# The docling sidecar is superseded dead code (parsing is TypeScript now) and
+# is not deployed anywhere. Kept out of the upload regardless.
+services/docling-sidecar
+
+# Python leftovers, in case the sidecar was ever run locally.
+.venv
+venv
+__pycache__

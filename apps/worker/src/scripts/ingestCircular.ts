@@ -14,8 +14,9 @@
 //     --issued 2024-05-15 \
 //     --url "https://www.sebi.gov.in/..."
 //
-// Requires: DATABASE_URL, GEMINI_API_KEY, R2_* vars, and the Docling sidecar
-// running (services/docling-sidecar, default http://localhost:8000).
+// Requires: DATABASE_URL, GEMINI_API_KEY and the R2_* vars. Parsing runs
+// in-process (unpdf for the text layer, Gemini for scanned pages), so there is
+// no separate service to start.
 
 import dotenv from "dotenv";
 import path from "node:path";

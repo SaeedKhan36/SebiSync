@@ -1,0 +1,17 @@
+# Install a real, npm-style node_modules tree instead of bun's default
+# symlink-into-.bun/ layout.
+#
+# This exists for Vercel. Vercel's Node builder traces the function's
+# dependencies with @vercel/nft, and with the default linker every package in
+# apps/worker/node_modules is a symlink into node_modules/.bun/<pkg>@<ver>/.
+# nft follows the link, packages the file at its *real* path, but records the
+# *symlink* path in the function's filePathMap — and does not recreate the
+# symlink. The deploy then fails with:
+#
+#     File does not exist: "apps/worker/node_modules/hono"
+#
+# Hoisted linking removes the symlinks, so the traced path and the packaged
+# path are the same path. Slower installs and a larger node_modules locally;
+# that is the trade being made, deliberately.
+[install]
+linker = "hoisted"
