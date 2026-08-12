@@ -5,25 +5,12 @@ import { createTRPCClient, httpBatchLink } from '@trpc/client'
 import { createTRPCOptionsProxy } from '@trpc/tanstack-react-query'
 
 import type { AppRouter } from '@sebi/worker'
+import { getClerkAuthToken } from '#/integrations/clerk/token'
 import { TRPCProvider } from '#/integrations/trpc/react'
 
 function getUrl() {
   const base = import.meta.env.VITE_WORKER_URL ?? 'http://localhost:8787'
   return `${base}/trpc`
-}
-
-// With SSR disabled for /_authenticated (see that route's comment), route
-// loaders now fire entirely client-side — but they can fire before Clerk's
-// browser SDK has finished restoring the session from cookies, leaving
-// window.Clerk.session momentarily null even for an actually-signed-in user.
-// Poll briefly rather than racing it: resolves in a few ms in practice, and
-// still correctly falls through to "no token" for a genuinely signed-out
-// user once the timeout elapses.
-async function waitForClerkSession(timeoutMs = 4000): Promise<void> {
-  const start = Date.now()
-  while (!window.Clerk?.session && Date.now() - start < timeoutMs) {
-    await new Promise((resolve) => setTimeout(resolve, 50))
-  }
 }
 
 // The real @sebi/worker backend has no transformer configured (plain JSON),
@@ -36,10 +23,10 @@ export const trpcClient = createTRPCClient<AppRouter>({
       url: getUrl(),
       // Forwards the active Clerk session token so the backend's Hono/tRPC
       // auth middleware can verify it (see apps/worker/src/lib/auth.ts).
+      // Prefer useAuth().getToken via ClerkTokenBridge; window.Clerk is fallback.
       async headers() {
         if (typeof window === 'undefined') return {}
-        await waitForClerkSession()
-        const token = await window.Clerk?.session?.getToken()
+        const token = await getClerkAuthToken()
         return token ? { Authorization: `Bearer ${token}` } : {}
       },
     }),

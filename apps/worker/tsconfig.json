@@ -2,8 +2,13 @@
   "extends": "../../packages/config/tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "rootDir": "src"
+    // rootDir spans the package, not just src/, because api/index.ts (the
+    // Vercel entry point) sits outside src/ and imports into it. Nothing is
+    // emitted by tsc anyway — the runnable artifact comes from esbuild
+    // (build.mjs) for Node, and from Vercel's own builder for the function —
+    // so these two options only shape typecheck output.
+    "rootDir": "."
   },
-  "include": ["src"],
-  "exclude": ["src/**/*.test.ts"]
+  "include": ["src", "api"],
+  "exclude": ["src/**/*.test.ts", "dist"]
 }
