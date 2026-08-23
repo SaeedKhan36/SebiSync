@@ -1,5 +1,33 @@
 import { prisma } from "@sebi/db";
+import type { Prisma } from "@sebi/db";
 import { writeAuditLog } from "../lib/audit";
+
+export type ChecklistWriteClient = Prisma.TransactionClient | typeof prisma;
+
+// Shared write path for PER_CLIENT checklist items. Used both by publish
+// fan-out (one obligation → every matching client) and by new-client backfill
+// (one client → every matching published obligation). skipDuplicates relies
+// on the partial unique index on (obligationId, clientId) WHERE clientId IS
+// NOT NULL AND triggerEventId IS NULL.
+export async function createPerClientChecklistItems(
+  db: ChecklistWriteClient,
+  args: {
+    intermediaryId: string;
+    items: Array<{ obligationId: string; clientId: string }>;
+  },
+): Promise<number> {
+  if (args.items.length === 0) return 0;
+  const result = await db.complianceChecklistItem.createMany({
+    data: args.items.map((item) => ({
+      intermediaryId: args.intermediaryId,
+      obligationId: item.obligationId,
+      clientId: item.clientId,
+      status: "PENDING" as const,
+    })),
+    skipDuplicates: true,
+  });
+  return result.count;
+}
 
 // On publish: PER_CLIENT obligations fan out one ComplianceChecklistItem per
 // Client under every matching-category Intermediary. ANNUAL/ONE_TIME fan out
@@ -32,16 +60,13 @@ export async function propagateObligation(obligationId: string): Promise<void> {
     let count = 0;
 
     if (obligation.frequency === "PER_CLIENT") {
-      const result = await prisma.complianceChecklistItem.createMany({
-        data: intermediary.clients.map((client) => ({
-          intermediaryId: intermediary.id,
+      count = await createPerClientChecklistItems(prisma, {
+        intermediaryId: intermediary.id,
+        items: intermediary.clients.map((client) => ({
           obligationId: obligation.id,
           clientId: client.id,
-          status: "PENDING" as const,
         })),
-        skipDuplicates: true,
       });
-      count = result.count;
     } else {
       // ANNUAL / ONE_TIME: intermediary-level, not per-client.
       const result = await prisma.complianceChecklistItem.createMany({
