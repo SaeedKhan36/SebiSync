@@ -4,8 +4,8 @@ import { useTRPC } from '#/integrations/trpc/react'
 // Non-optimistic sibling of Phase 6's useUpdateChecklistStatus: that hook's
 // optimistic patch is shaped for a list query's array cache entry, which
 // doesn't match this single-object detail query. Invalidates broadly instead
-// (getDetail exact key + the checklist router + dashboard.summary), per the
-// architecture's cross-router invalidation map.
+// (getDetail exact key + the checklist router + dashboard.summary + this
+// item's audit log), per the architecture's cross-router invalidation map.
 export function useUpdateChecklistStatusDetail(checklistItemId: string) {
   const trpc = useTRPC()
   const queryClient = useQueryClient()
@@ -18,6 +18,11 @@ export function useUpdateChecklistStatusDetail(checklistItemId: string) {
         )
         void queryClient.invalidateQueries(trpc.checklist.pathFilter())
         void queryClient.invalidateQueries(trpc.dashboard.summary.queryFilter())
+        // The status change writes a STATUS_CHANGED audit entry, so the detail
+        // page's timeline is stale until this key is refetched too.
+        void queryClient.invalidateQueries(
+          trpc.audit.listByEntity.queryFilter({ checklistItemId }),
+        )
       },
     }),
   )

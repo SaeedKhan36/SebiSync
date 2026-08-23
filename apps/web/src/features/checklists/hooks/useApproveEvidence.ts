@@ -13,6 +13,11 @@ export function useApproveEvidence(checklistItemId: string) {
         )
         void queryClient.invalidateQueries(trpc.checklist.pathFilter())
         void queryClient.invalidateQueries(trpc.dashboard.summary.queryFilter())
+        // The approval writes an EVIDENCE_APPROVED audit entry, so the detail
+        // page's timeline is stale until this key is refetched too.
+        void queryClient.invalidateQueries(
+          trpc.audit.listByEntity.queryFilter({ checklistItemId }),
+        )
       },
     }),
   )

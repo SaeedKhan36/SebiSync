@@ -44,6 +44,11 @@ export function useUploadEvidence(checklistItemId: string) {
       )
       void queryClient.invalidateQueries(trpc.checklist.pathFilter())
       void queryClient.invalidateQueries(trpc.dashboard.summary.queryFilter())
+      // The upload writes an EVIDENCE_UPLOADED audit entry, so the detail
+      // page's timeline is stale until this key is refetched too.
+      void queryClient.invalidateQueries(
+        trpc.audit.listByEntity.queryFilter({ checklistItemId }),
+      )
     },
   })
 
