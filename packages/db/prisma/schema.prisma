@@ -283,6 +283,12 @@ model ComplianceChecklistItem {
   auditLogs       AuditLogEntry[]
 
   @@index([intermediaryId, status])
+  // Idempotency for auto-created PER_CLIENT items is a partial unique index in
+  // SQL (Prisma cannot express WHERE on @@unique). createMany skipDuplicates
+  // in propagateObligation and new-client backfill depends on it:
+  //   (obligationId, clientId) WHERE clientId IS NOT NULL AND triggerEventId IS NULL
+  // PER_EVENT items are excluded — they have triggerEventId and may repeat
+  // per (obligation, client).
 }
 
 // A discrete event that starts a deadline clock for a PER_EVENT obligation

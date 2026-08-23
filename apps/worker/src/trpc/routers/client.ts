@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { createClientSchema, updateClientSchema } from "@sebi/schemas";
 import { router, orgProcedure } from "../trpc";
 import { writeAuditLog } from "../../lib/audit";
+import { backfillClientChecklists } from "../../services/backfillClientChecklists";
 
 export const clientRouter = router({
   listByIntermediary: orgProcedure.query(({ ctx }) =>
@@ -12,13 +13,25 @@ export const clientRouter = router({
   ),
 
   create: orgProcedure.input(createClientSchema).mutation(async ({ ctx, input }) => {
-    const client = await ctx.prisma.client.create({
-      data: {
-        name: input.name,
-        onboardedAt: input.onboardedAt,
-        intermediaryId: ctx.intermediaryId,
+    // Client row + published-obligation backfill commit together so a
+    // mid-flight DB failure cannot leave an onboarded client with no
+    // checklist items (and no way to retry without creating a duplicate client).
+    const { client, checklistItemsCreated } = await ctx.prisma.$transaction(
+      async (tx) => {
+        const created = await tx.client.create({
+          data: {
+            name: input.name,
+            onboardedAt: input.onboardedAt,
+            intermediaryId: ctx.intermediaryId,
+          },
+        });
+        const count = await backfillClientChecklists(tx, created.id);
+        return { client: created, checklistItemsCreated: count };
       },
-    });
+      // Neon round-trips can blow the 5s default when several published
+      // obligations are assigned in the same transaction as the insert.
+      { timeout: 15_000 },
+    );
     await writeAuditLog({
       intermediaryId: ctx.intermediaryId,
       entityType: "Client",
@@ -28,6 +41,16 @@ export const clientRouter = router({
       actorUserId: ctx.userId,
       afterState: { name: client.name, onboardedAt: client.onboardedAt?.toISOString() ?? null },
     });
+    if (checklistItemsCreated > 0) {
+      await writeAuditLog({
+        intermediaryId: ctx.intermediaryId,
+        entityType: "ChecklistItem",
+        entityId: client.id,
+        action: "CHECKLIST_ITEMS_CREATED",
+        actorType: "SYSTEM_AGENT",
+        metadata: { clientId: client.id, count: checklistItemsCreated },
+      });
+    }
     return client;
   }),
 
