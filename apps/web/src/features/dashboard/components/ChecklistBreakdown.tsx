@@ -18,6 +18,7 @@ interface ChecklistBreakdownProps {
 const STATUS_ORDER: ChecklistStatus[] = [
   'COMPLIANT',
   'IN_PROGRESS',
+  'PENDING_REVIEW',
   'PENDING',
   'GAP',
   'NOT_APPLICABLE',

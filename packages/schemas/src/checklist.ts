@@ -44,3 +44,14 @@ export const updateChecklistStatusSchema = z.object({
   assignedToUserId: z.string().optional(),
 });
 export type UpdateChecklistStatus = z.infer<typeof updateChecklistStatusSchema>;
+
+export const approveChecklistEvidenceSchema = z.object({
+  id: z.string(),
+});
+export type ApproveChecklistEvidence = z.infer<typeof approveChecklistEvidenceSchema>;
+
+export const rejectChecklistEvidenceSchema = z.object({
+  id: z.string(),
+  reason: z.string().min(1),
+});
+export type RejectChecklistEvidence = z.infer<typeof rejectChecklistEvidenceSchema>;

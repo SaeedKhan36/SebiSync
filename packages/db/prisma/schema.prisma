@@ -253,6 +253,7 @@ model ObligationSourceChunk {
 enum ChecklistStatus {
   PENDING
   IN_PROGRESS
+  PENDING_REVIEW
   COMPLIANT
   GAP
   NOT_APPLICABLE

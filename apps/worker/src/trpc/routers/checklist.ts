@@ -1,8 +1,14 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { checklistStatusSchema, createTriggerEventSchema, updateChecklistStatusSchema } from "@sebi/schemas";
+import {
+  approveChecklistEvidenceSchema,
+  checklistStatusSchema,
+  createTriggerEventSchema,
+  rejectChecklistEvidenceSchema,
+  updateChecklistStatusSchema,
+} from "@sebi/schemas";
 import type { Prisma } from "@sebi/db";
-import { router, orgProcedure } from "../trpc";
+import { router, orgProcedure, orgAdminProcedure } from "../trpc";
 import { writeAuditLog } from "../../lib/audit";
 
 export const checklistRouter = router({
@@ -102,6 +108,18 @@ export const checklistRouter = router({
       if (existing.intermediaryId !== ctx.intermediaryId) {
         throw new TRPCError({ code: "FORBIDDEN", message: "Checklist item belongs to another organization" });
       }
+      if (input.status === "COMPLIANT") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Marking an item compliant requires checklist.approve after evidence review",
+        });
+      }
+      if (input.status === "NOT_APPLICABLE" && ctx.orgRole !== "org:admin") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Admin role required to mark an item not applicable",
+        });
+      }
       const updated = await ctx.prisma.complianceChecklistItem.update({
         where: { id: input.id },
         data: { status: input.status, assignedToUserId: input.assignedToUserId },
@@ -119,4 +137,76 @@ export const checklistRouter = router({
       });
       return updated;
     }),
+
+  approve: orgAdminProcedure.input(approveChecklistEvidenceSchema).mutation(async ({ ctx, input }) => {
+    const existing = await ctx.prisma.complianceChecklistItem.findUniqueOrThrow({
+      where: { id: input.id },
+    });
+    if (existing.intermediaryId !== ctx.intermediaryId) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Checklist item belongs to another organization" });
+    }
+    if (existing.status !== "PENDING_REVIEW") {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Checklist item ${input.id} is not awaiting review (current: ${existing.status})`,
+      });
+    }
+    const evidenceCount = await ctx.prisma.evidenceRecord.count({
+      where: { checklistItemId: input.id },
+    });
+    if (evidenceCount < 1) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Checklist item ${input.id} has no evidence to approve`,
+      });
+    }
+    const updated = await ctx.prisma.complianceChecklistItem.update({
+      where: { id: input.id },
+      data: { status: "COMPLIANT" },
+    });
+    await writeAuditLog({
+      intermediaryId: updated.intermediaryId,
+      entityType: "ChecklistItem",
+      entityId: updated.id,
+      action: "EVIDENCE_APPROVED",
+      actorType: "USER",
+      actorUserId: ctx.userId,
+      beforeState: { status: existing.status },
+      afterState: { status: updated.status },
+      checklistItemId: updated.id,
+    });
+    return updated;
+  }),
+
+  reject: orgAdminProcedure.input(rejectChecklistEvidenceSchema).mutation(async ({ ctx, input }) => {
+    const existing = await ctx.prisma.complianceChecklistItem.findUniqueOrThrow({
+      where: { id: input.id },
+    });
+    if (existing.intermediaryId !== ctx.intermediaryId) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Checklist item belongs to another organization" });
+    }
+    if (existing.status !== "PENDING_REVIEW") {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: `Checklist item ${input.id} is not awaiting review (current: ${existing.status})`,
+      });
+    }
+    const updated = await ctx.prisma.complianceChecklistItem.update({
+      where: { id: input.id },
+      data: { status: "PENDING" },
+    });
+    await writeAuditLog({
+      intermediaryId: updated.intermediaryId,
+      entityType: "ChecklistItem",
+      entityId: updated.id,
+      action: "EVIDENCE_REJECTED",
+      actorType: "USER",
+      actorUserId: ctx.userId,
+      beforeState: { status: existing.status },
+      afterState: { status: updated.status },
+      metadata: { reason: input.reason },
+      checklistItemId: updated.id,
+    });
+    return updated;
+  }),
 });

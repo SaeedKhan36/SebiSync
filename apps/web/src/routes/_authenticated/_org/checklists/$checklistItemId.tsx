@@ -6,6 +6,7 @@ import { ChecklistDetailPanel } from '#/features/checklists/components/Checklist
 import { GapsSection } from '#/features/checklists/components/GapsSection'
 import { EvidenceList } from '#/features/evidence/components/EvidenceList'
 import { EvidenceUploadDialog } from '#/features/evidence/components/EvidenceUploadDialog'
+import { ReviewEvidenceActions } from '#/features/checklists/components/ReviewEvidenceActions'
 import { useChecklistDetail } from '#/features/checklists/hooks/useChecklistDetail'
 import { useAuditLog } from '#/features/audit/hooks/useAuditLog'
 
@@ -35,7 +36,12 @@ function ChecklistDetailPage() {
           <GapsSection gaps={item.gaps} />
           <EvidenceList
             evidenceRecords={item.evidenceRecords}
-            action={<EvidenceUploadDialog checklistItemId={item.id} />}
+            action={
+              <div className="flex items-center gap-2">
+                <ReviewEvidenceActions item={item} />
+                <EvidenceUploadDialog checklistItemId={item.id} />
+              </div>
+            }
           />
           <AuditTimeline entries={(auditLog.data ?? []) as AuditLogEntry[]} />
         </div>

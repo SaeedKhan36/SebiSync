@@ -33,6 +33,8 @@ export interface AuditLogEntry {
 const ACTION_ICONS: Record<string, LucideIcon> = {
   STATUS_CHANGED: ListChecks,
   EVIDENCE_UPLOADED: FileUp,
+  EVIDENCE_APPROVED: ShieldCheck,
+  EVIDENCE_REJECTED: ShieldAlert,
   GAP_DETECTED: ShieldAlert,
   GAP_RESOLVED: ShieldCheck,
   CHECKLIST_ITEMS_CREATED: CheckCircle2,
@@ -42,6 +44,8 @@ const ACTION_ICONS: Record<string, LucideIcon> = {
 const ACTION_LABELS: Record<string, string> = {
   STATUS_CHANGED: 'Status changed',
   EVIDENCE_UPLOADED: 'Evidence uploaded',
+  EVIDENCE_APPROVED: 'Evidence approved',
+  EVIDENCE_REJECTED: 'Evidence rejected',
   GAP_DETECTED: 'Gap detected',
   GAP_RESOLVED: 'Gap resolved',
   CHECKLIST_ITEMS_CREATED: 'Checklist item created',
@@ -53,6 +57,8 @@ const ACTION_LABELS: Record<string, string> = {
 const ACTION_DOT: Record<string, string> = {
   GAP_DETECTED: 'bg-[#b91c1c]',
   GAP_RESOLVED: 'bg-[#15803d]',
+  EVIDENCE_APPROVED: 'bg-[#15803d]',
+  EVIDENCE_REJECTED: 'bg-[#b91c1c]',
 }
 
 function actorLabel(entry: AuditLogEntry): string {

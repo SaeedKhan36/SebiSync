@@ -44,11 +44,11 @@ export const evidenceRouter = router({
           validUntil: input.validUntil,
         },
       });
-      // Simple rule: any non-expired evidence marks the item COMPLIANT.
-      // Refined gap-aware logic lives in services/detectGaps.ts.
+      // Upload is a submission, not a completion. An admin must approve
+      // via checklist.approve before the item can become COMPLIANT.
       await ctx.prisma.complianceChecklistItem.update({
         where: { id: input.checklistItemId },
-        data: { lastEvidenceAt: evidence.submittedAt, status: "COMPLIANT" },
+        data: { lastEvidenceAt: evidence.submittedAt, status: "PENDING_REVIEW" },
       });
       await writeAuditLog({
         intermediaryId: checklistItem.intermediaryId,

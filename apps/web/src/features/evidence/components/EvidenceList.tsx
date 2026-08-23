@@ -23,7 +23,7 @@ export function EvidenceList({ evidenceRecords, action }: EvidenceListProps) {
       </CardHeader>
       <CardContent>
         {evidenceRecords.length === 0 ? (
-          <EmptyState title="No evidence yet" description="Upload evidence to mark this item compliant." />
+          <EmptyState title="No evidence yet" description="Upload evidence to submit this item for review." />
         ) : (
           <ul className="divide-y">
             {evidenceRecords.map((record) => (

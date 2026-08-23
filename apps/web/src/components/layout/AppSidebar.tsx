@@ -7,21 +7,29 @@ import {
   ListChecks,
   ScanLine,
   Settings,
+  ShieldCheck,
   Users,
 } from 'lucide-react'
 import { cn } from '#/lib/utils'
+import { useIsOrgAdmin } from '#/features/auth/hooks/useIsOrgAdmin'
 
 // Static nav list. Every item now resolves to a registered route (Dashboard:
 // Phase 3, Checklists: Phase 6, Gaps: Phase 8, Documents/Obligations:
 // Phase 9, Settings: Phase 11).
 const NAV_ITEMS = [
   { label: 'Dashboard', to: '/dashboard', icon: LayoutDashboard },
-  { label: 'Checklists', to: '/checklists', icon: ListChecks },
+  { label: 'Checklists', to: '/checklists', icon: ListChecks, excludePrefix: '/checklists/review' },
   { label: 'Gaps', to: '/gaps', icon: AlertTriangle },
   { label: 'Clients', to: '/clients', icon: Users },
   { label: 'Documents', to: '/documents', icon: FileText },
   { label: 'Obligations', to: '/obligations', icon: Gavel },
 ] as const
+
+const REVIEW_ITEM = {
+  label: 'Review',
+  to: '/checklists/review',
+  icon: ShieldCheck,
+} as const
 
 // Settings spans several sibling pages (/settings/intermediary,
 // /settings/organization), so it matches on the section prefix rather than on
@@ -40,17 +48,23 @@ function NavItem({
   icon: Icon,
   onNavigate,
   matchPrefix,
+  excludePrefix,
 }: {
   label: string
-  to: (typeof NAV_ITEMS)[number]['to'] | typeof SETTINGS_ITEM.to
+  to: (typeof NAV_ITEMS)[number]['to'] | typeof SETTINGS_ITEM.to | typeof REVIEW_ITEM.to
   icon: typeof LayoutDashboard
   onNavigate?: () => void
   matchPrefix?: string
+  excludePrefix?: string
 }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname })
   // Prefix match so detail routes (/gaps/$gapId) keep their section lit.
   const prefix = matchPrefix ?? to
-  const isActive = pathname === prefix || pathname.startsWith(`${prefix}/`)
+  const matchesPrefix = pathname === prefix || pathname.startsWith(`${prefix}/`)
+  const excluded = excludePrefix
+    ? pathname === excludePrefix || pathname.startsWith(`${excludePrefix}/`)
+    : false
+  const isActive = matchesPrefix && !excluded
 
   return (
     <Link
@@ -82,13 +96,18 @@ function NavItem({
 // Shared between the desktop <aside> below and AppTopbar's mobile Sheet nav
 // (Phase 10) — one nav list, two presentations, so they can never drift.
 export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
+  const isAdmin = useIsOrgAdmin()
+  const items = isAdmin
+    ? [NAV_ITEMS[0], NAV_ITEMS[1], REVIEW_ITEM, ...NAV_ITEMS.slice(2)]
+    : NAV_ITEMS
+
   return (
     <div className="flex flex-1 flex-col p-3">
       <p className="px-3 pt-1 pb-2 text-[11px] font-semibold tracking-[0.12em] text-sidebar-foreground/50 uppercase">
         Workspace
       </p>
       <nav className="space-y-0.5">
-        {NAV_ITEMS.map((item) => (
+        {items.map((item) => (
           <NavItem key={item.to} {...item} onNavigate={onNavigate} />
         ))}
       </nav>
