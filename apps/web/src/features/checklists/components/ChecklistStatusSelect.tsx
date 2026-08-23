@@ -7,6 +7,8 @@ import {
   SelectValue,
 } from '#/components/ui/select'
 import { checklistStatusColorMap } from '#/components/status/statusColorMaps'
+import { StatusBadge } from '#/components/status/StatusBadge'
+import { useIsOrgAdmin } from '#/features/auth/hooks/useIsOrgAdmin'
 
 interface ChecklistStatusSelectProps {
   status: ChecklistStatus
@@ -14,7 +16,7 @@ interface ChecklistStatusSelectProps {
   disabled?: boolean
 }
 
-const STATUS_VALUES = Object.keys(checklistStatusColorMap) as ChecklistStatus[]
+const LOCKED_STATUSES = new Set<ChecklistStatus>(['PENDING_REVIEW', 'COMPLIANT'])
 
 // Prop-driven mutation, not a hook call inside this component — the list
 // page (Phase 6) and the detail page (Phase 7) each need a different
@@ -27,6 +29,19 @@ export function ChecklistStatusSelect({
   onStatusChange,
   disabled,
 }: ChecklistStatusSelectProps) {
+  const isAdmin = useIsOrgAdmin()
+  const locked = LOCKED_STATUSES.has(status) || (status === 'NOT_APPLICABLE' && !isAdmin)
+
+  if (locked) {
+    return <StatusBadge value={status} map={checklistStatusColorMap} />
+  }
+
+  const options = (Object.keys(checklistStatusColorMap) as ChecklistStatus[]).filter((value) => {
+    if (value === 'COMPLIANT' || value === 'PENDING_REVIEW') return false
+    if (value === 'NOT_APPLICABLE' && !isAdmin) return false
+    return true
+  })
+
   return (
     <Select
       value={status}
@@ -37,7 +52,7 @@ export function ChecklistStatusSelect({
         <SelectValue />
       </SelectTrigger>
       <SelectContent onClick={(e) => e.stopPropagation()}>
-        {STATUS_VALUES.map((value) => (
+        {options.map((value) => (
           <SelectItem key={value} value={value}>
             {checklistStatusColorMap[value].label}
           </SelectItem>

@@ -93,4 +93,19 @@ describe("evaluateGap", () => {
     );
     expect(result).toBeNull();
   });
+
+  it("does not flag an item awaiting review when evidence is present and unexpired", () => {
+    const now = new Date("2026-01-01T00:00:00Z");
+    const createdAt = new Date("2025-06-01T00:00:00Z");
+    const result = evaluateGap(
+      {
+        dueDate: null,
+        createdAt,
+        hasEvidence: true,
+        latestEvidenceValidUntil: new Date("2026-12-01T00:00:00Z"),
+      },
+      now,
+    );
+    expect(result).toBeNull();
+  });
 });

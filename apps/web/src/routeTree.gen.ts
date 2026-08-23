@@ -9,57 +9,78 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedOrgRouteRouteImport } from './routes/_authenticated/_org/route'
-import { Route as AuthenticatedDocumentsIndexRouteImport } from './routes/_authenticated/documents/index'
-import { Route as AuthenticatedDocumentsDocumentIdRouteImport } from './routes/_authenticated/documents/$documentId'
-import { Route as AuthenticatedObligationsIndexRouteImport } from './routes/_authenticated/obligations/index'
-import { Route as AuthenticatedObligationsObligationIdRouteImport } from './routes/_authenticated/obligations/$obligationId'
-import { Route as AuthenticatedObligationsReviewRouteImport } from './routes/_authenticated/obligations/review'
-import { Route as AuthLoginIndexRouteImport } from './routes/auth/login/index'
-import { Route as AuthLoginSplatRouteImport } from './routes/auth/login/$'
 import { Route as AuthRegisterIndexRouteImport } from './routes/auth/register/index'
+import { Route as AuthLoginIndexRouteImport } from './routes/auth/login/index'
+import { Route as AuthenticatedObligationsIndexRouteImport } from './routes/_authenticated/obligations/index'
+import { Route as AuthenticatedDocumentsIndexRouteImport } from './routes/_authenticated/documents/index'
 import { Route as AuthRegisterSplatRouteImport } from './routes/auth/register/$'
-import { Route as AuthenticatedOrgChecklistsIndexRouteImport } from './routes/_authenticated/_org/checklists/index'
-import { Route as AuthenticatedOrgChecklistsChecklistItemIdRouteImport } from './routes/_authenticated/_org/checklists/$checklistItemId'
-import { Route as AuthenticatedOrgClientsIndexRouteImport } from './routes/_authenticated/_org/clients/index'
-import { Route as AuthenticatedOrgDashboardIndexRouteImport } from './routes/_authenticated/_org/dashboard/index'
-import { Route as AuthenticatedOrgGapsIndexRouteImport } from './routes/_authenticated/_org/gaps/index'
-import { Route as AuthenticatedOrgGapsGapIdRouteImport } from './routes/_authenticated/_org/gaps/$gapId'
+import { Route as AuthLoginSplatRouteImport } from './routes/auth/login/$'
+import { Route as AuthenticatedObligationsReviewRouteImport } from './routes/_authenticated/obligations/review'
+import { Route as AuthenticatedObligationsObligationIdRouteImport } from './routes/_authenticated/obligations/$obligationId'
+import { Route as AuthenticatedDocumentsDocumentIdRouteImport } from './routes/_authenticated/documents/$documentId'
 import { Route as AuthenticatedOrgOnboardingIndexRouteImport } from './routes/_authenticated/_org/onboarding/index'
-import { Route as AuthenticatedOrgSettingsIntermediaryRouteImport } from './routes/_authenticated/_org/settings/intermediary'
+import { Route as AuthenticatedOrgGapsIndexRouteImport } from './routes/_authenticated/_org/gaps/index'
+import { Route as AuthenticatedOrgDashboardIndexRouteImport } from './routes/_authenticated/_org/dashboard/index'
+import { Route as AuthenticatedOrgClientsIndexRouteImport } from './routes/_authenticated/_org/clients/index'
+import { Route as AuthenticatedOrgChecklistsIndexRouteImport } from './routes/_authenticated/_org/checklists/index'
 import { Route as AuthenticatedOrgSettingsOrganizationRouteImport } from './routes/_authenticated/_org/settings/organization'
+import { Route as AuthenticatedOrgSettingsIntermediaryRouteImport } from './routes/_authenticated/_org/settings/intermediary'
+import { Route as AuthenticatedOrgGapsGapIdRouteImport } from './routes/_authenticated/_org/gaps/$gapId'
+import { Route as AuthenticatedOrgChecklistsReviewRouteImport } from './routes/_authenticated/_org/checklists/review'
+import { Route as AuthenticatedOrgChecklistsChecklistItemIdRouteImport } from './routes/_authenticated/_org/checklists/$checklistItemId'
 
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedOrgRouteRoute = AuthenticatedOrgRouteRouteImport.update({
   id: '/_org',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthRegisterIndexRoute = AuthRegisterIndexRouteImport.update({
+  id: '/auth/register/',
+  path: '/auth/register/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthLoginIndexRoute = AuthLoginIndexRouteImport.update({
+  id: '/auth/login/',
+  path: '/auth/login/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedObligationsIndexRoute =
+  AuthenticatedObligationsIndexRouteImport.update({
+    id: '/obligations/',
+    path: '/obligations/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDocumentsIndexRoute =
   AuthenticatedDocumentsIndexRouteImport.update({
     id: '/documents/',
     path: '/documents/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedDocumentsDocumentIdRoute =
-  AuthenticatedDocumentsDocumentIdRouteImport.update({
-    id: '/documents/$documentId',
-    path: '/documents/$documentId',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedObligationsIndexRoute =
-  AuthenticatedObligationsIndexRouteImport.update({
-    id: '/obligations/',
-    path: '/obligations/',
+const AuthRegisterSplatRoute = AuthRegisterSplatRouteImport.update({
+  id: '/auth/register/$',
+  path: '/auth/register/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthLoginSplatRoute = AuthLoginSplatRouteImport.update({
+  id: '/auth/login/$',
+  path: '/auth/login/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedObligationsReviewRoute =
+  AuthenticatedObligationsReviewRouteImport.update({
+    id: '/obligations/review',
+    path: '/obligations/review',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedObligationsObligationIdRoute =
@@ -68,54 +89,16 @@ const AuthenticatedObligationsObligationIdRoute =
     path: '/obligations/$obligationId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedObligationsReviewRoute =
-  AuthenticatedObligationsReviewRouteImport.update({
-    id: '/obligations/review',
-    path: '/obligations/review',
+const AuthenticatedDocumentsDocumentIdRoute =
+  AuthenticatedDocumentsDocumentIdRouteImport.update({
+    id: '/documents/$documentId',
+    path: '/documents/$documentId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthLoginIndexRoute = AuthLoginIndexRouteImport.update({
-  id: '/auth/login/',
-  path: '/auth/login/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthLoginSplatRoute = AuthLoginSplatRouteImport.update({
-  id: '/auth/login/$',
-  path: '/auth/login/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRegisterIndexRoute = AuthRegisterIndexRouteImport.update({
-  id: '/auth/register/',
-  path: '/auth/register/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthRegisterSplatRoute = AuthRegisterSplatRouteImport.update({
-  id: '/auth/register/$',
-  path: '/auth/register/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuthenticatedOrgChecklistsIndexRoute =
-  AuthenticatedOrgChecklistsIndexRouteImport.update({
-    id: '/checklists/',
-    path: '/checklists/',
-    getParentRoute: () => AuthenticatedOrgRouteRoute,
-  } as any)
-const AuthenticatedOrgChecklistsChecklistItemIdRoute =
-  AuthenticatedOrgChecklistsChecklistItemIdRouteImport.update({
-    id: '/checklists/$checklistItemId',
-    path: '/checklists/$checklistItemId',
-    getParentRoute: () => AuthenticatedOrgRouteRoute,
-  } as any)
-const AuthenticatedOrgClientsIndexRoute =
-  AuthenticatedOrgClientsIndexRouteImport.update({
-    id: '/clients/',
-    path: '/clients/',
-    getParentRoute: () => AuthenticatedOrgRouteRoute,
-  } as any)
-const AuthenticatedOrgDashboardIndexRoute =
-  AuthenticatedOrgDashboardIndexRouteImport.update({
-    id: '/dashboard/',
-    path: '/dashboard/',
+const AuthenticatedOrgOnboardingIndexRoute =
+  AuthenticatedOrgOnboardingIndexRouteImport.update({
+    id: '/onboarding/',
+    path: '/onboarding/',
     getParentRoute: () => AuthenticatedOrgRouteRoute,
   } as any)
 const AuthenticatedOrgGapsIndexRoute =
@@ -124,16 +107,28 @@ const AuthenticatedOrgGapsIndexRoute =
     path: '/gaps/',
     getParentRoute: () => AuthenticatedOrgRouteRoute,
   } as any)
-const AuthenticatedOrgGapsGapIdRoute =
-  AuthenticatedOrgGapsGapIdRouteImport.update({
-    id: '/gaps/$gapId',
-    path: '/gaps/$gapId',
+const AuthenticatedOrgDashboardIndexRoute =
+  AuthenticatedOrgDashboardIndexRouteImport.update({
+    id: '/dashboard/',
+    path: '/dashboard/',
     getParentRoute: () => AuthenticatedOrgRouteRoute,
   } as any)
-const AuthenticatedOrgOnboardingIndexRoute =
-  AuthenticatedOrgOnboardingIndexRouteImport.update({
-    id: '/onboarding/',
-    path: '/onboarding/',
+const AuthenticatedOrgClientsIndexRoute =
+  AuthenticatedOrgClientsIndexRouteImport.update({
+    id: '/clients/',
+    path: '/clients/',
+    getParentRoute: () => AuthenticatedOrgRouteRoute,
+  } as any)
+const AuthenticatedOrgChecklistsIndexRoute =
+  AuthenticatedOrgChecklistsIndexRouteImport.update({
+    id: '/checklists/',
+    path: '/checklists/',
+    getParentRoute: () => AuthenticatedOrgRouteRoute,
+  } as any)
+const AuthenticatedOrgSettingsOrganizationRoute =
+  AuthenticatedOrgSettingsOrganizationRouteImport.update({
+    id: '/settings/organization',
+    path: '/settings/organization',
     getParentRoute: () => AuthenticatedOrgRouteRoute,
   } as any)
 const AuthenticatedOrgSettingsIntermediaryRoute =
@@ -142,10 +137,22 @@ const AuthenticatedOrgSettingsIntermediaryRoute =
     path: '/settings/intermediary',
     getParentRoute: () => AuthenticatedOrgRouteRoute,
   } as any)
-const AuthenticatedOrgSettingsOrganizationRoute =
-  AuthenticatedOrgSettingsOrganizationRouteImport.update({
-    id: '/settings/organization',
-    path: '/settings/organization',
+const AuthenticatedOrgGapsGapIdRoute =
+  AuthenticatedOrgGapsGapIdRouteImport.update({
+    id: '/gaps/$gapId',
+    path: '/gaps/$gapId',
+    getParentRoute: () => AuthenticatedOrgRouteRoute,
+  } as any)
+const AuthenticatedOrgChecklistsReviewRoute =
+  AuthenticatedOrgChecklistsReviewRouteImport.update({
+    id: '/checklists/review',
+    path: '/checklists/review',
+    getParentRoute: () => AuthenticatedOrgRouteRoute,
+  } as any)
+const AuthenticatedOrgChecklistsChecklistItemIdRoute =
+  AuthenticatedOrgChecklistsChecklistItemIdRouteImport.update({
+    id: '/checklists/$checklistItemId',
+    path: '/checklists/$checklistItemId',
     getParentRoute: () => AuthenticatedOrgRouteRoute,
   } as any)
 
@@ -161,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/auth/login/': typeof AuthLoginIndexRoute
   '/auth/register/': typeof AuthRegisterIndexRoute
   '/checklists/$checklistItemId': typeof AuthenticatedOrgChecklistsChecklistItemIdRoute
+  '/checklists/review': typeof AuthenticatedOrgChecklistsReviewRoute
   '/gaps/$gapId': typeof AuthenticatedOrgGapsGapIdRoute
   '/settings/intermediary': typeof AuthenticatedOrgSettingsIntermediaryRoute
   '/settings/organization': typeof AuthenticatedOrgSettingsOrganizationRoute
@@ -182,6 +190,7 @@ export interface FileRoutesByTo {
   '/auth/login': typeof AuthLoginIndexRoute
   '/auth/register': typeof AuthRegisterIndexRoute
   '/checklists/$checklistItemId': typeof AuthenticatedOrgChecklistsChecklistItemIdRoute
+  '/checklists/review': typeof AuthenticatedOrgChecklistsReviewRoute
   '/gaps/$gapId': typeof AuthenticatedOrgGapsGapIdRoute
   '/settings/intermediary': typeof AuthenticatedOrgSettingsIntermediaryRoute
   '/settings/organization': typeof AuthenticatedOrgSettingsOrganizationRoute
@@ -206,6 +215,7 @@ export interface FileRoutesById {
   '/auth/login/': typeof AuthLoginIndexRoute
   '/auth/register/': typeof AuthRegisterIndexRoute
   '/_authenticated/_org/checklists/$checklistItemId': typeof AuthenticatedOrgChecklistsChecklistItemIdRoute
+  '/_authenticated/_org/checklists/review': typeof AuthenticatedOrgChecklistsReviewRoute
   '/_authenticated/_org/gaps/$gapId': typeof AuthenticatedOrgGapsGapIdRoute
   '/_authenticated/_org/settings/intermediary': typeof AuthenticatedOrgSettingsIntermediaryRoute
   '/_authenticated/_org/settings/organization': typeof AuthenticatedOrgSettingsOrganizationRoute
@@ -229,6 +239,7 @@ export interface FileRouteTypes {
     | '/auth/login/'
     | '/auth/register/'
     | '/checklists/$checklistItemId'
+    | '/checklists/review'
     | '/gaps/$gapId'
     | '/settings/intermediary'
     | '/settings/organization'
@@ -250,6 +261,7 @@ export interface FileRouteTypes {
     | '/auth/login'
     | '/auth/register'
     | '/checklists/$checklistItemId'
+    | '/checklists/review'
     | '/gaps/$gapId'
     | '/settings/intermediary'
     | '/settings/organization'
@@ -273,6 +285,7 @@ export interface FileRouteTypes {
     | '/auth/login/'
     | '/auth/register/'
     | '/_authenticated/_org/checklists/$checklistItemId'
+    | '/_authenticated/_org/checklists/review'
     | '/_authenticated/_org/gaps/$gapId'
     | '/_authenticated/_org/settings/intermediary'
     | '/_authenticated/_org/settings/organization'
@@ -294,18 +307,18 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/_org': {
@@ -315,19 +328,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrgRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/documents/': {
-      id: '/_authenticated/documents/'
-      path: '/documents'
-      fullPath: '/documents/'
-      preLoaderRoute: typeof AuthenticatedDocumentsIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/auth/register/': {
+      id: '/auth/register/'
+      path: '/auth/register'
+      fullPath: '/auth/register/'
+      preLoaderRoute: typeof AuthRegisterIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/documents/$documentId': {
-      id: '/_authenticated/documents/$documentId'
-      path: '/documents/$documentId'
-      fullPath: '/documents/$documentId'
-      preLoaderRoute: typeof AuthenticatedDocumentsDocumentIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
+    '/auth/login/': {
+      id: '/auth/login/'
+      path: '/auth/login'
+      fullPath: '/auth/login/'
+      preLoaderRoute: typeof AuthLoginIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/obligations/': {
       id: '/_authenticated/obligations/'
@@ -336,25 +349,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedObligationsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/obligations/$obligationId': {
-      id: '/_authenticated/obligations/$obligationId'
-      path: '/obligations/$obligationId'
-      fullPath: '/obligations/$obligationId'
-      preLoaderRoute: typeof AuthenticatedObligationsObligationIdRouteImport
+    '/_authenticated/documents/': {
+      id: '/_authenticated/documents/'
+      path: '/documents'
+      fullPath: '/documents/'
+      preLoaderRoute: typeof AuthenticatedDocumentsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/obligations/review': {
-      id: '/_authenticated/obligations/review'
-      path: '/obligations/review'
-      fullPath: '/obligations/review'
-      preLoaderRoute: typeof AuthenticatedObligationsReviewRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/auth/login/': {
-      id: '/auth/login/'
-      path: '/auth/login'
-      fullPath: '/auth/login/'
-      preLoaderRoute: typeof AuthLoginIndexRouteImport
+    '/auth/register/$': {
+      id: '/auth/register/$'
+      path: '/auth/register/$'
+      fullPath: '/auth/register/$'
+      preLoaderRoute: typeof AuthRegisterSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/login/$': {
@@ -364,46 +370,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth/register/': {
-      id: '/auth/register/'
-      path: '/auth/register'
-      fullPath: '/auth/register/'
-      preLoaderRoute: typeof AuthRegisterIndexRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_authenticated/obligations/review': {
+      id: '/_authenticated/obligations/review'
+      path: '/obligations/review'
+      fullPath: '/obligations/review'
+      preLoaderRoute: typeof AuthenticatedObligationsReviewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/auth/register/$': {
-      id: '/auth/register/$'
-      path: '/auth/register/$'
-      fullPath: '/auth/register/$'
-      preLoaderRoute: typeof AuthRegisterSplatRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_authenticated/obligations/$obligationId': {
+      id: '/_authenticated/obligations/$obligationId'
+      path: '/obligations/$obligationId'
+      fullPath: '/obligations/$obligationId'
+      preLoaderRoute: typeof AuthenticatedObligationsObligationIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/_org/checklists/': {
-      id: '/_authenticated/_org/checklists/'
-      path: '/checklists'
-      fullPath: '/checklists/'
-      preLoaderRoute: typeof AuthenticatedOrgChecklistsIndexRouteImport
-      parentRoute: typeof AuthenticatedOrgRouteRoute
+    '/_authenticated/documents/$documentId': {
+      id: '/_authenticated/documents/$documentId'
+      path: '/documents/$documentId'
+      fullPath: '/documents/$documentId'
+      preLoaderRoute: typeof AuthenticatedDocumentsDocumentIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/_org/checklists/$checklistItemId': {
-      id: '/_authenticated/_org/checklists/$checklistItemId'
-      path: '/checklists/$checklistItemId'
-      fullPath: '/checklists/$checklistItemId'
-      preLoaderRoute: typeof AuthenticatedOrgChecklistsChecklistItemIdRouteImport
-      parentRoute: typeof AuthenticatedOrgRouteRoute
-    }
-    '/_authenticated/_org/clients/': {
-      id: '/_authenticated/_org/clients/'
-      path: '/clients'
-      fullPath: '/clients/'
-      preLoaderRoute: typeof AuthenticatedOrgClientsIndexRouteImport
-      parentRoute: typeof AuthenticatedOrgRouteRoute
-    }
-    '/_authenticated/_org/dashboard/': {
-      id: '/_authenticated/_org/dashboard/'
-      path: '/dashboard'
-      fullPath: '/dashboard/'
-      preLoaderRoute: typeof AuthenticatedOrgDashboardIndexRouteImport
+    '/_authenticated/_org/onboarding/': {
+      id: '/_authenticated/_org/onboarding/'
+      path: '/onboarding'
+      fullPath: '/onboarding/'
+      preLoaderRoute: typeof AuthenticatedOrgOnboardingIndexRouteImport
       parentRoute: typeof AuthenticatedOrgRouteRoute
     }
     '/_authenticated/_org/gaps/': {
@@ -413,25 +405,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrgGapsIndexRouteImport
       parentRoute: typeof AuthenticatedOrgRouteRoute
     }
-    '/_authenticated/_org/gaps/$gapId': {
-      id: '/_authenticated/_org/gaps/$gapId'
-      path: '/gaps/$gapId'
-      fullPath: '/gaps/$gapId'
-      preLoaderRoute: typeof AuthenticatedOrgGapsGapIdRouteImport
+    '/_authenticated/_org/dashboard/': {
+      id: '/_authenticated/_org/dashboard/'
+      path: '/dashboard'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof AuthenticatedOrgDashboardIndexRouteImport
       parentRoute: typeof AuthenticatedOrgRouteRoute
     }
-    '/_authenticated/_org/onboarding/': {
-      id: '/_authenticated/_org/onboarding/'
-      path: '/onboarding'
-      fullPath: '/onboarding/'
-      preLoaderRoute: typeof AuthenticatedOrgOnboardingIndexRouteImport
+    '/_authenticated/_org/clients/': {
+      id: '/_authenticated/_org/clients/'
+      path: '/clients'
+      fullPath: '/clients/'
+      preLoaderRoute: typeof AuthenticatedOrgClientsIndexRouteImport
       parentRoute: typeof AuthenticatedOrgRouteRoute
     }
-    '/_authenticated/_org/settings/intermediary': {
-      id: '/_authenticated/_org/settings/intermediary'
-      path: '/settings/intermediary'
-      fullPath: '/settings/intermediary'
-      preLoaderRoute: typeof AuthenticatedOrgSettingsIntermediaryRouteImport
+    '/_authenticated/_org/checklists/': {
+      id: '/_authenticated/_org/checklists/'
+      path: '/checklists'
+      fullPath: '/checklists/'
+      preLoaderRoute: typeof AuthenticatedOrgChecklistsIndexRouteImport
       parentRoute: typeof AuthenticatedOrgRouteRoute
     }
     '/_authenticated/_org/settings/organization': {
@@ -441,11 +433,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrgSettingsOrganizationRouteImport
       parentRoute: typeof AuthenticatedOrgRouteRoute
     }
+    '/_authenticated/_org/settings/intermediary': {
+      id: '/_authenticated/_org/settings/intermediary'
+      path: '/settings/intermediary'
+      fullPath: '/settings/intermediary'
+      preLoaderRoute: typeof AuthenticatedOrgSettingsIntermediaryRouteImport
+      parentRoute: typeof AuthenticatedOrgRouteRoute
+    }
+    '/_authenticated/_org/gaps/$gapId': {
+      id: '/_authenticated/_org/gaps/$gapId'
+      path: '/gaps/$gapId'
+      fullPath: '/gaps/$gapId'
+      preLoaderRoute: typeof AuthenticatedOrgGapsGapIdRouteImport
+      parentRoute: typeof AuthenticatedOrgRouteRoute
+    }
+    '/_authenticated/_org/checklists/review': {
+      id: '/_authenticated/_org/checklists/review'
+      path: '/checklists/review'
+      fullPath: '/checklists/review'
+      preLoaderRoute: typeof AuthenticatedOrgChecklistsReviewRouteImport
+      parentRoute: typeof AuthenticatedOrgRouteRoute
+    }
+    '/_authenticated/_org/checklists/$checklistItemId': {
+      id: '/_authenticated/_org/checklists/$checklistItemId'
+      path: '/checklists/$checklistItemId'
+      fullPath: '/checklists/$checklistItemId'
+      preLoaderRoute: typeof AuthenticatedOrgChecklistsChecklistItemIdRouteImport
+      parentRoute: typeof AuthenticatedOrgRouteRoute
+    }
   }
 }
 
 interface AuthenticatedOrgRouteRouteChildren {
   AuthenticatedOrgChecklistsChecklistItemIdRoute: typeof AuthenticatedOrgChecklistsChecklistItemIdRoute
+  AuthenticatedOrgChecklistsReviewRoute: typeof AuthenticatedOrgChecklistsReviewRoute
   AuthenticatedOrgGapsGapIdRoute: typeof AuthenticatedOrgGapsGapIdRoute
   AuthenticatedOrgSettingsIntermediaryRoute: typeof AuthenticatedOrgSettingsIntermediaryRoute
   AuthenticatedOrgSettingsOrganizationRoute: typeof AuthenticatedOrgSettingsOrganizationRoute
@@ -459,6 +480,7 @@ interface AuthenticatedOrgRouteRouteChildren {
 const AuthenticatedOrgRouteRouteChildren: AuthenticatedOrgRouteRouteChildren = {
   AuthenticatedOrgChecklistsChecklistItemIdRoute:
     AuthenticatedOrgChecklistsChecklistItemIdRoute,
+  AuthenticatedOrgChecklistsReviewRoute: AuthenticatedOrgChecklistsReviewRoute,
   AuthenticatedOrgGapsGapIdRoute: AuthenticatedOrgGapsGapIdRoute,
   AuthenticatedOrgSettingsIntermediaryRoute:
     AuthenticatedOrgSettingsIntermediaryRoute,
@@ -509,12 +531,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

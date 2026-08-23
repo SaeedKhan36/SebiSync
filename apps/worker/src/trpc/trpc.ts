@@ -49,3 +49,12 @@ export const orgProcedure = clerkOrgProcedure.use(({ ctx, next }) => {
   }
   return next({ ctx: { ...ctx, intermediaryId: ctx.intermediaryId } });
 });
+
+// orgProcedure + the org:admin role check. adminProcedure can't be reused —
+// it's protectedProcedure-based and has no intermediaryId.
+export const orgAdminProcedure = orgProcedure.use(({ ctx, next }) => {
+  if (ctx.orgRole !== "org:admin") {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Admin role required" });
+  }
+  return next({ ctx });
+});

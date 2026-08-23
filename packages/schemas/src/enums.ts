@@ -25,6 +25,7 @@ export type ObligationStatus = z.infer<typeof obligationStatusSchema>;
 export const checklistStatusSchema = z.enum([
   "PENDING",
   "IN_PROGRESS",
+  "PENDING_REVIEW",
   "COMPLIANT",
   "GAP",
   "NOT_APPLICABLE",

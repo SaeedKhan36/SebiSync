@@ -63,6 +63,11 @@ export const checklistStatusColorMap: Record<ChecklistStatus, StatusEntry> = {
     variant: 'default',
     className: 'bg-[#4338ca] hover:bg-[#4338ca]/90',
   },
+  PENDING_REVIEW: {
+    label: 'Awaiting review',
+    variant: 'outline',
+    className: 'border-amber-500 text-amber-700 dark:text-amber-400',
+  },
   COMPLIANT: {
     label: 'Compliant',
     variant: 'default',
@@ -107,6 +112,7 @@ export const evidenceTypeLabelMap: Record<EvidenceType, string> = {
 export const checklistStatusChartColorMap: Record<ChecklistStatus, string> = {
   PENDING: '#b45309', // amber-700 — waiting, needs action
   IN_PROGRESS: '#4338ca', // indigo-700 — brand working color
+  PENDING_REVIEW: '#d97706', // amber-600 — submitted, awaiting a human
   COMPLIANT: '#15803d', // green-700 — good
   GAP: '#b91c1c', // red-700 — matches destructive
   NOT_APPLICABLE: '#d6d3d1', // stone-300 — deliberately recessive neutral
