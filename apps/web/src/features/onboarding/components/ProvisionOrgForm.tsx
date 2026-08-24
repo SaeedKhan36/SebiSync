@@ -18,10 +18,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '#/components/ui/select'
-import {
-  useIntermediaryCategories,
-  useProvisionIntermediary,
-} from '#/features/onboarding/hooks/useProvisionIntermediary'
+import { useIntermediaryCategories } from '#/features/intermediary/hooks/useIntermediaryCategories'
+import { useProvisionIntermediary } from '#/features/onboarding/hooks/useProvisionIntermediary'
 
 export function ProvisionOrgForm() {
   const categoriesQuery = useIntermediaryCategories()

@@ -52,17 +52,19 @@ function DocumentDetailPage() {
               <span className="font-semibold tabular-nums">{document._count.obligations}</span>
             </DetailField>
           </div>
-          <div className="border-t border-dashed border-border pt-4">
-            <a
-              href={document.sourceUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-[#3730a3] dark:text-indigo-300 hover:underline"
-            >
-              View source circular
-              <ExternalLink className="size-3.5" />
-            </a>
-          </div>
+          {document.sourceUrl ? (
+            <div className="border-t border-dashed border-border pt-4">
+              <a
+                href={document.sourceUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-[#3730a3] dark:text-indigo-300 hover:underline"
+              >
+                View source circular
+                <ExternalLink className="size-3.5" />
+              </a>
+            </div>
+          ) : null}
         </CardContent>
       </Card>
 
@@ -70,6 +72,7 @@ function DocumentDetailPage() {
         documentId={document.id}
         status={document.status}
         hasFile={document.r2ObjectKey !== ''}
+        lastError={document.lastError}
       />
 
       {document.status === 'EXTRACTED' && (

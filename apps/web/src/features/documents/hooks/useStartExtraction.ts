@@ -4,12 +4,14 @@ import { uploadFileToPresignedUrl } from '#/lib/upload'
 
 interface StartExtractionInput {
   documentId: string
-  file: File
+  file?: File
 }
 
 // Composes getUploadUrl -> PUT (Phase 7's shared helper) -> triggerExtraction
 // into one action. Unlike evidence, document.getUploadUrl already persists
-// r2ObjectKey server-side, so there's no separate "confirm" step.
+// r2ObjectKey server-side, so there's no separate "confirm" step. `file` is
+// optional when the PDF is already in object storage (uploaded from the
+// create dialog).
 export function useStartExtraction(documentId: string) {
   const trpc = useTRPC()
   const queryClient = useQueryClient()
@@ -18,12 +20,14 @@ export function useStartExtraction(documentId: string) {
 
   return useMutation({
     mutationFn: async (input: StartExtractionInput) => {
-      const { uploadUrl } = await getUploadUrl.mutateAsync({
-        documentId: input.documentId,
-        fileName: input.file.name,
-        contentType: input.file.type,
-      })
-      await uploadFileToPresignedUrl(uploadUrl, input.file)
+      if (input.file) {
+        const { uploadUrl } = await getUploadUrl.mutateAsync({
+          documentId: input.documentId,
+          fileName: input.file.name,
+          contentType: input.file.type || 'application/pdf',
+        })
+        await uploadFileToPresignedUrl(uploadUrl, input.file)
+      }
       return triggerExtraction.mutateAsync({ documentId: input.documentId })
     },
     onSuccess: () => {

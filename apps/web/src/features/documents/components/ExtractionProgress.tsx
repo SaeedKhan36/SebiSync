@@ -18,12 +18,13 @@ interface ExtractionProgressProps {
   documentId: string
   status: DocStatus
   hasFile: boolean
+  lastError?: string | null
 }
 
 // Handles all three UPLOADED-status sub-states in one component: no file
 // yet (picker), file ready to trigger, and PARSING/EXTRACTING in-flight
 // (indeterminate progress, polled by the parent via useDocumentDetail).
-export function ExtractionProgress({ documentId, status, hasFile }: ExtractionProgressProps) {
+export function ExtractionProgress({ documentId, status, hasFile, lastError }: ExtractionProgressProps) {
   const [file, setFile] = useState<File | null>(null)
   const startExtraction = useStartExtraction(documentId)
   const retryExtraction = useRetryExtraction(documentId)
@@ -32,9 +33,14 @@ export function ExtractionProgress({ documentId, status, hasFile }: ExtractionPr
     return (
       <Card>
         <CardContent className="flex items-center justify-between gap-3 py-6">
-          <div>
+          <div className="min-w-0">
             <p className="text-sm font-medium">Extraction failed</p>
             <StatusBadge value={status} map={docStatusColorMap} className="mt-1" />
+            {(retryExtraction.error?.message ?? lastError) && (
+              <p className="text-muted-foreground mt-2 text-sm">
+                {retryExtraction.error?.message ?? lastError}
+              </p>
+            )}
           </div>
           <Button
             variant="outline"
@@ -53,12 +59,28 @@ export function ExtractionProgress({ documentId, status, hasFile }: ExtractionPr
   if (status === 'PARSING' || status === 'EXTRACTING') {
     return (
       <Card>
-        <CardContent className="flex items-center gap-3 py-6">
-          <Loader2 className="text-muted-foreground size-5 animate-spin" />
-          <div>
-            <p className="text-sm font-medium">{STATUS_COPY[status]}</p>
-            <StatusBadge value={status} map={docStatusColorMap} className="mt-1" />
+        <CardContent className="flex items-center justify-between gap-3 py-6">
+          <div className="flex min-w-0 items-center gap-3">
+            <Loader2 className="text-muted-foreground size-5 shrink-0 animate-spin" />
+            <div className="min-w-0">
+              <p className="text-sm font-medium">{STATUS_COPY[status]}</p>
+              <StatusBadge value={status} map={docStatusColorMap} className="mt-1" />
+              {lastError && (
+                <p className="text-muted-foreground mt-2 text-sm">{lastError}</p>
+              )}
+            </div>
           </div>
+          {lastError && (
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={retryExtraction.isPending}
+              onClick={() => retryExtraction.mutate({ documentId })}
+            >
+              <RotateCcw className="size-4" />
+              {retryExtraction.isPending ? 'Retrying...' : 'Retry extraction'}
+            </Button>
+          )}
         </CardContent>
       </Card>
     )
@@ -74,15 +96,23 @@ export function ExtractionProgress({ documentId, status, hasFile }: ExtractionPr
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
-        <Input type="file" accept="application/pdf" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+        {!hasFile && (
+          <Input type="file" accept="application/pdf" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+        )}
         {startExtraction.isError && (
           <p className="text-destructive text-sm">{startExtraction.error.message}</p>
         )}
         <Button
-          disabled={!file || startExtraction.isPending}
-          onClick={() => file && startExtraction.mutate({ documentId, file })}
+          disabled={(!hasFile && !file) || startExtraction.isPending}
+          onClick={() => startExtraction.mutate({ documentId, file: file ?? undefined })}
         >
-          {startExtraction.isPending ? 'Uploading...' : 'Upload & start extraction'}
+          {startExtraction.isPending
+            ? hasFile
+              ? 'Starting...'
+              : 'Uploading...'
+            : hasFile
+              ? 'Start extraction'
+              : 'Upload & start extraction'}
         </Button>
       </CardContent>
     </Card>

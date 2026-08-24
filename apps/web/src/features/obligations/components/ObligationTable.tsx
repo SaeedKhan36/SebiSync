@@ -1,5 +1,5 @@
 import { Gavel } from 'lucide-react'
-import { DataTable } from '#/components/data-table/DataTable'
+import { DataTable, type DataTableGroupBy } from '#/components/data-table/DataTable'
 import { EmptyState } from '#/components/EmptyState'
 import { obligationColumns } from '#/features/obligations/columns'
 import type { ObligationListItem } from '#/features/obligations/hooks/useObligationList'
@@ -14,6 +14,7 @@ interface ObligationTableProps {
     clearSelection: () => void,
   ) => React.ReactNode
   defaultSorting?: { id: string; desc: boolean }[]
+  groupBy?: DataTableGroupBy<ObligationListItem>
 }
 
 export function ObligationTable({
@@ -23,6 +24,7 @@ export function ObligationTable({
   enableRowSelection,
   bulkActions,
   defaultSorting,
+  groupBy,
 }: ObligationTableProps) {
   return (
     <DataTable
@@ -35,6 +37,7 @@ export function ObligationTable({
       enableRowSelection={enableRowSelection}
       bulkActions={bulkActions}
       defaultSorting={defaultSorting}
+      groupBy={groupBy}
       emptyState={
         <EmptyState icon={Gavel} title="No obligations" description="Nothing matches the current filters." />
       }
