@@ -12,9 +12,12 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { trpcServer } from "@hono/trpc-server";
+import { configureTriggerClient } from "./lib/configureTrigger";
 import { appRouter } from "./trpc/router";
 import { createContext } from "./trpc/context";
 import { detectGaps } from "./services/detectGaps";
+
+configureTriggerClient();
 
 const app = new Hono();
 

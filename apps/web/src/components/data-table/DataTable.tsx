@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import {
   type ColumnDef,
+  type Row,
   type RowSelectionState,
   type SortingState,
   flexRender,
@@ -24,6 +25,8 @@ import { cn } from '#/lib/utils'
 import { useDebouncedValue } from '#/lib/useDebouncedValue'
 import { DataTablePagination } from './DataTablePagination'
 import { DataTableToolbar } from './DataTableToolbar'
+import { bucketRows, type DataTableGroupBy } from './groupRows'
+import { DataTableGroupProvider } from './DataTableGroupContext'
 
 // Column defs are plain data, so per-column presentation (width, alignment,
 // responsive hiding) has nowhere to live except `meta`. Declaration-merged
@@ -35,6 +38,10 @@ declare module '@tanstack/react-table' {
     cellClassName?: string
   }
 }
+
+// Re-exported so callers configure grouping from the component they're
+// passing it to, while the bucketing itself stays unit-testable.
+export type { DataTableGroupBy }
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -60,6 +67,11 @@ interface DataTableProps<TData, TValue> {
   // paginated table keep the footer in the same slot/spacing as every other
   // table instead of the page bolting a second row on underneath.
   footer?: React.ReactNode
+  // Splits the (already filtered and sorted) rows into labelled, collapsible
+  // sections. Mutually exclusive with `enableRowSelection`: a row fanned out
+  // across two groups shares one TanStack row id, so ticking it in one group
+  // would silently tick it in the other.
+  groupBy?: DataTableGroupBy<TData>
 }
 
 // Generic TanStack Table + shadcn Table wrapper. Per-domain code only
@@ -81,10 +93,12 @@ export function DataTable<TData, TValue>({
   defaultSorting,
   manualPagination,
   footer,
+  groupBy,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>(defaultSorting ?? [])
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
   const [searchInput, setSearchInput] = useState('')
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
   const globalFilter = useDebouncedValue(searchInput, 250)
 
   const selectionColumn: ColumnDef<TData, TValue> = {
@@ -123,7 +137,11 @@ export function DataTable<TData, TValue>({
     onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: manualPagination ? undefined : getPaginationRowModel(),
+    // Grouping suppresses pagination: a group straddling a page boundary
+    // would defeat the point of grouping. The registers that group are tens
+    // of rows per circular, so rendering them all is cheap.
+    getPaginationRowModel:
+      manualPagination || groupBy ? undefined : getPaginationRowModel(),
     manualPagination,
     getFilteredRowModel: getSearchValue ? getFilteredRowModel() : undefined,
     globalFilterFn: getSearchValue
@@ -135,6 +153,60 @@ export function DataTable<TData, TValue>({
 
   const isEmpty = !isLoading && data.length === 0
   const selectedRows = table.getSelectedRowModel().rows.map((row) => row.original)
+  // Not memoised: callers build `groupBy` inline, so its identity changes on
+  // every render and a useMemo keyed on it would never hit.
+  const groups = groupBy ? bucketRows(table.getRowModel().rows, groupBy) : null
+
+  function toggleGroup(key: string) {
+    setCollapsedGroups((previous) => {
+      const next = new Set(previous)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
+
+  // Shared by the grouped and ungrouped paths so the click/keyboard/focus
+  // handling has one home. The grouped path passes a group-prefixed key: a
+  // row fanned out across two groups reuses one TanStack row id.
+  function renderRow(row: Row<TData>, key: string) {
+    return (
+      <TableRow
+        key={key}
+        data-state={row.getIsSelected() && 'selected'}
+        onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+        onKeyDown={
+          onRowClick
+            ? (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  onRowClick(row.original)
+                }
+              }
+            : undefined
+        }
+        tabIndex={onRowClick ? 0 : undefined}
+        role={onRowClick ? 'button' : undefined}
+        className={
+          onRowClick
+            ? // A background tint alone is too weak a focus indicator for a
+              // keyboard-activatable row — pair it with an inset ring so the
+              // focused row is unambiguous against both themes.
+              'group/row cursor-pointer border-border outline-none transition-colors hover:bg-accent/50 focus-visible:bg-accent/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset'
+            : 'border-border hover:bg-accent/30'
+        }
+      >
+        {row.getVisibleCells().map((cell) => (
+          <TableCell
+            key={cell.id}
+            className={cn('px-4 py-3.5', cell.column.columnDef.meta?.cellClassName)}
+          >
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          </TableCell>
+        ))}
+      </TableRow>
+    )
+  }
 
   return (
     <div className="space-y-4">
@@ -192,50 +264,40 @@ export function DataTable<TData, TValue>({
                     {emptyState}
                   </TableCell>
                 </TableRow>
+              ) : groupBy && groups ? (
+                groups.map(([key, groupRows]) => {
+                  const isCollapsed = collapsedGroups.has(key)
+                  return (
+                    // A provider renders no DOM, so <tbody> still receives only
+                    // <tr> children.
+                    <DataTableGroupProvider key={`group:${key}`} value={key}>
+                      {/* TableRow tints any row containing an aria-expanded
+                          element, which every group header has — cancel it so
+                          the header component alone owns the band colour. */}
+                      <TableRow className="border-border hover:bg-transparent has-aria-expanded:bg-transparent">
+                        <TableCell colSpan={tableColumns.length} className="p-0">
+                          {groupBy.renderHeader(key, groupRows.length, {
+                            isCollapsed,
+                            toggle: () => toggleGroup(key),
+                          })}
+                        </TableCell>
+                      </TableRow>
+                      {/* A collapsed group renders only its header, so the
+                          DOM stays small on wide registers. */}
+                      {!isCollapsed &&
+                        groupRows.map((row) => renderRow(row, `${key}:${row.id}`))}
+                    </DataTableGroupProvider>
+                  )
+                })
               ) : (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && 'selected'}
-                    onClick={onRowClick ? () => onRowClick(row.original) : undefined}
-                    onKeyDown={
-                      onRowClick
-                        ? (e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault()
-                              onRowClick(row.original)
-                            }
-                          }
-                        : undefined
-                    }
-                    tabIndex={onRowClick ? 0 : undefined}
-                    role={onRowClick ? 'button' : undefined}
-                    className={
-                      onRowClick
-                        ? // A background tint alone is too weak a focus
-                          // indicator for a keyboard-activatable row — pair it
-                          // with an inset ring so the focused row is
-                          // unambiguous against both themes.
-                          'group/row cursor-pointer border-border outline-none transition-colors hover:bg-accent/50 focus-visible:bg-accent/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset'
-                        : 'border-border hover:bg-accent/30'
-                    }
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        key={cell.id}
-                        className={cn('px-4 py-3.5', cell.column.columnDef.meta?.cellClassName)}
-                      >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
+                table.getRowModel().rows.map((row) => renderRow(row, row.id))
               )}
             </TableBody>
           </Table>
         </div>
       </div>
-      {footer ?? (!isEmpty && !manualPagination && <DataTablePagination table={table} />)}
+      {footer ??
+        (!isEmpty && !manualPagination && !groupBy && <DataTablePagination table={table} />)}
     </div>
   )
 }

@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTRPC } from '#/integrations/trpc/react'
 
-// Re-triggers ingestion for a FAILED document via document.retryExtraction —
-// the backend uses a fresh timestamped idempotency key so this genuinely
-// re-runs rather than being deduped against the original failed attempt.
+// Re-triggers ingestion for a FAILED document, or one stuck in PARSING /
+// EXTRACTING, via document.retryExtraction — the backend cancels the previous
+// run and uses a fresh timestamped idempotency key so this genuinely re-runs.
 export function useRetryExtraction(documentId: string) {
   const trpc = useTRPC()
   const queryClient = useQueryClient()

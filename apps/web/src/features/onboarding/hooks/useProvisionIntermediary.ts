@@ -1,11 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useTRPC } from '#/integrations/trpc/react'
-
-export function useIntermediaryCategories() {
-  const trpc = useTRPC()
-  return useQuery(trpc.intermediary.listCategories.queryOptions())
-}
 
 export function useProvisionIntermediary() {
   const trpc = useTRPC()

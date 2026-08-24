@@ -1,5 +1,6 @@
 import { task, logger } from "@trigger.dev/sdk";
 import { prisma } from "@sebi/db";
+import { writeAuditLog } from "../../lib/audit";
 import { runIngestionWorkflow } from "../../ingestion/workflow";
 
 interface IngestDocumentPayload {
@@ -42,5 +43,27 @@ export const ingestDocumentTask = task({
     await runIngestionWorkflow(payload.documentId);
     logger.info("ingest-document.complete", { documentId: payload.documentId });
     return { skipped: false as const };
+  },
+  // Platform-level failures (timeout, OOM, never-started crash) skip the
+  // workflow's own catch, which would otherwise leave the document PARSING
+  // forever. Mirrors propagate-obligation: fire once retries are exhausted.
+  onFailure: async ({ payload, error }) => {
+    const message = error instanceof Error ? error.message : String(error);
+    if (/cancel/i.test(message)) {
+      logger.info("ingest-document.canceled", { documentId: payload.documentId });
+      return;
+    }
+    logger.error("ingest-document.failed", { documentId: payload.documentId, error: message });
+    await prisma.regulatoryDocument.update({
+      where: { id: payload.documentId },
+      data: { status: "FAILED" },
+    });
+    await writeAuditLog({
+      entityType: "RegulatoryDocument",
+      entityId: payload.documentId,
+      action: "STATUS_CHANGED",
+      actorType: "SYSTEM_AGENT",
+      metadata: { error: message, phase: "task" },
+    });
   },
 });
